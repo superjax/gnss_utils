@@ -1,0 +1,17 @@
+<package format="2">
+  <name>GNSS_utils</name>
+  <version>1.1.1</version>
+  <description>
+    Utilities Demonstrating Simple fusion and simulation of Raw GNSS measurements
+  </description>
+  <maintainer email="superjax08@gmail.com">James Jackson</maintainer>
+  <license>BSD-3</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>inertial_sense</depend>
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+
+</package>   

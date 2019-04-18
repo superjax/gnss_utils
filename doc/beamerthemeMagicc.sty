@@ -1,0 +1,138 @@
+\mode<presentation>
+
+% Define some colors. These color definitions come from the BYU web style
+% guidelines (http://web.byu.edu/wiki/styleguide/colors)
+\definecolor{BYUblue}{HTML}{002255}
+\definecolor{BYUgray}{HTML}{A7A9AC}
+\definecolor{BYUred}{HTML}{990011}
+\definecolor{BYUgreen}{HTML}{007722}
+\definecolor{BYUorange}{HTML}{EEAA00}
+
+% choose from the standard beamer templates
+\usefonttheme{professionalfonts} % uses better math font than default
+
+\usetheme{default}
+\useinnertheme{default}
+\useoutertheme{default}
+
+\usecolortheme{default}
+\usecolortheme{whale}
+\usecolortheme{rose}
+
+% set custom colors
+\setbeamercolor{structure}{fg=BYUblue}
+\setbeamercolor{alerted text}{fg=BYUred}
+\setbeamercolor{example text}{fg=BYUgreen}
+
+% set footline template style (adapted from the miniframe and infolines themes)
+\setbeamercolor*{author in head/foot}{parent=palette tertiary}
+\setbeamercolor*{title in head/foot}{parent=palette secondary}
+\setbeamercolor*{date in head/foot}{parent=palette tertiary}
+\setbeamercolor*{empty in head/foot}{parent=palette secondary}
+
+%TODO clean up and add more options (see miniframe theme for examples)
+% just authortitle might be a good one
+\def\beamer@theme@footline@none{}
+\def\beamer@theme@footline@empty{
+  \defbeamertemplate*{footline}{Magicc theme}
+  {
+    \begin{beamercolorbox}[wd=\paperwidth,ht=2.25ex,dp=1ex,right]{empty in head/foot}%
+      \usebeamerfont{empty in head/foot}\insertframenumber\hspace*{2ex}
+    \end{beamercolorbox}%
+  }
+}
+\def\beamer@theme@footline@authortitle{
+  \defbeamertemplate*{footline}{Magicc theme}
+  {
+    \leavevmode%
+    \hbox{%
+    \begin{beamercolorbox}[wd=0.5\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+      \usebeamerfont{author in head/foot}\insertshortauthor
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=0.5\paperwidth,ht=2.25ex,dp=1ex,right]{title in head/foot}%
+      \usebeamerfont{title in head/foot}\insertshorttitle{}\hfill
+      \insertframenumber\hspace*{2ex}
+    \end{beamercolorbox}}%
+    \vskip0pt%
+  }
+}
+\def\beamer@theme@footline@authordate{
+  \defbeamertemplate*{footline}{Magicc theme}
+  {
+    \leavevmode%
+    \hbox{%
+    \begin{beamercolorbox}[wd=0.5\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+      \usebeamerfont{author in head/foot}\insertshortauthor
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=0.5\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+      \usebeamerfont{date in head/foot}\insertshortdate{}\hfill
+      \insertframenumber\hspace*{2ex}
+    \end{beamercolorbox}}%
+    \vskip0pt%
+  }
+}
+\def\beamer@theme@footline@authorinstitute{
+  \defbeamertemplate*{footline}{Magicc theme}
+  {
+    \leavevmode%
+    \hbox{%
+    \begin{beamercolorbox}[wd=0.5\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=0.5\paperwidth,ht=2.25ex,dp=1ex,right]{institute in head/foot}%
+      \usebeamerfont{institute in head/foot}\insertshortinstitute{}\hfill
+      \insertframenumber\hspace*{2ex}
+    \end{beamercolorbox}}%
+    \vskip0pt%
+  }
+}
+\def\beamer@theme@footline@authortitledate{
+  \defbeamertemplate*{footline}{Magicc theme}
+  {
+    \leavevmode%
+    \hbox{%
+    \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+      \usebeamerfont{author in head/foot}\insertshortauthor
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+      \usebeamerfont{title in head/foot}\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+      \usebeamerfont{date in head/foot}\insertshortdate{}\hfill
+      \insertframenumber\hspace*{2ex} 
+    \end{beamercolorbox}}%
+    \vskip0pt%
+  }
+}
+\def\beamer@theme@footline@authortitleinstitute{
+  \defbeamertemplate*{footline}{Magicc theme}
+  {
+    \leavevmode%
+    \hbox{%
+    \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+      \usebeamerfont{author in head/foot}\insertshortauthor
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+      \usebeamerfont{title in head/foot}\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.333333\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+      \usebeamerfont{date in head/foot}\insertshortinstitute{}\hfill
+      \insertframenumber\hspace*{2ex} 
+    \end{beamercolorbox}}%
+    \vskip0pt%
+  }
+}
+
+\DeclareOptionBeamer{footline}{\csname beamer@theme@footline@#1\endcsname}
+\ProcessOptionsBeamer
+
+
+%TODO set it up so you can specify the frame number style (e.g. number=empty, number=frame, number=frametotal). Do this by specifying the definitions for three different commands (e.g. beamer@numberstyle@empty, beamer@numberstyle@frame, beamer@numberstyle@frametotal) and then when you declare the option set a fixed number command to be the appropriate one of these (e.g. \def\number{\csname beamer@numberstyle@#1} assuming \number isn't already a command). Then use the \number command in the appropriate places in the footline templates. It would probably be important to declare the number style option before the footline style option for this approach so that \number is alredy defined when the footline option gets processed. But then again latex may do the ordering automatically, I'm not really sure.
+
+%TODO try to replace the frametitle template to draw a wavy-bordered background behind the title rather than just a rectangle (I assume it's currently done with a beamercolorbox, can we replace that with a pgf image or something?). If it works, make it into an option (e.g. frametitle=wavy, but make sure that that option name won't cause a namespace collision). Maybe try to put the logo in the header as well (as an option, of course)?
+
+% set the left and right margin widths
+\setbeamersize{text margin left=1em,text margin right=1em}
+
+\mode
+<all>
