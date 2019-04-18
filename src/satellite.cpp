@@ -36,13 +36,12 @@ Satellite::Satellite(const eph_t& eph, int idx)
 
 void Satellite::addEphemeris(const eph_t &_eph)
 {
-    ASSERT( _eph.sat == id_,
-           "Tried to add ephemeris from a different satellite");
+    assert( _eph.sat == id_);
 //    ASSERT((eph_.size() > 0) ? eph.toe >= eph_.back().toe : true,
 //           "tried to push ephemeris out of order");
 
-    ASSERT((_eph.toe.tow_sec <= DateTime::SECONDS_IN_WEEK), "Corrupt ephemeris");
-    ASSERT((_eph.toe.week <= 1000000), "Corrupt ephemeris");
+    assert(_eph.toe.tow_sec <= DateTime::SECONDS_IN_WEEK);
+    assert(_eph.toe.week <= 1000000);
     eph_ = _eph;
     t.week = 0;
     t.tow_sec = 0;
@@ -94,17 +93,24 @@ void Satellite::computeMeasurement(const GTime& rec_time, const Vector3d& rec_po
     z(0) = range + C_LIGHT * (clk_bias(0) - sat_clk(0));
 
     // compute relative velocity between receiver and satellite, adjusted by the clock drift rate
-    z(1) = (sat_vel_tr - receiver_vel).dot(los) / range + C_LIGHT * (clk_bias(1) - sat_clk(1));
+    z(1) = (vel - receiver_vel).dot(los/range)
+            + OMEGA_EARTH / C_LIGHT * e_z.dot(sat_vel.cross(receiver_vel))
+            + C_LIGHT * (clk_bias(1) - sat_clk(1));
+    printf("coriolis prange = %f\n", OMEGA_EARTH / C_LIGHT * e_z.dot(vel.cross(receiver_vel)));
 
-    // Compute Azimuth and Elevation to satellite
-    Vector2d az_el;
-    los2azimuthElevation(rec_pos, los, az_el);
-    Vector3d lla = WSG84::ecef2lla(rec_pos);
+    // Don't calculate lla if we are at (0, 0, 0)
+    if (rec_pos.norm() > 0)
+    {
+        // Compute Azimuth and Elevation to satellite
+        Vector2d az_el;
+        los2azimuthElevation(rec_pos, los, az_el);
+        Vector3d lla = WGS84::ecef2lla(rec_pos);
 
-    // Compute and incorporate ionospheric delay
-    double ion_delay = ionosphericDelay(rec_time, lla, az_el);
-    double trop_delay = troposphericDelay(rec_time, lla, az_el);
-    z(0) += ion_delay + trop_delay;
+        // Compute and incorporate ionospheric delay
+        double ion_delay = ionosphericDelay(rec_time, lla, az_el);
+        double trop_delay = troposphericDelay(rec_time, lla, az_el);
+        z(0) += ion_delay + trop_delay;
+    }
 
     z(2) = z(0) / LAMBDA_L1;
 
@@ -129,7 +135,7 @@ Vector2d Satellite::azimuthElevation(const GTime& t, const Vector3d &rec_pos_ece
 
 void Satellite::los2azimuthElevation(const Vector3d& receiver_pos_ecef, const Vector3d& los_ecef, Vector2d& az_el) const
 {
-    xform::Xformd x_e2n = WSG84::x_ecef2ned(receiver_pos_ecef);
+    xform::Xformd x_e2n = WGS84::x_ecef2ned(receiver_pos_ecef);
     Vector3d los_ned = x_e2n.q().rotp(los_ecef.normalized());
     quat::Quatd q_los = quat::Quatd::from_two_unit_vectors(e_x, los_ned);
     az_el(0) = q_los.yaw();
@@ -379,4 +385,13 @@ void Satellite::readFromRawFile(std::string filename)
         }
     }
 
+}
+
+Obs::Obs()
+{
+    sat_idx = -1;
+}
+bool Obs::operator <(const Obs& other)
+{
+    return sat_idx < other.sat_idx;
 }

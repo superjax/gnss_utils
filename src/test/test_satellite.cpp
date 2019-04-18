@@ -84,10 +84,10 @@ TEST_F (TestSatellite, AzimuthElevationStraightUp)
     Vector2d az_el, clock;
     Vector3d sat_pos, sat_vel;
     sat.computePositionVelocityClock(time, sat_pos, sat_vel, clock);
-    Vector3d sat_lla = WSG84::ecef2lla(sat_pos);
+    Vector3d sat_lla = WGS84::ecef2lla(sat_pos);
     Vector3d surface_lla = sat_lla;
     surface_lla(2) = 0;
-    Vector3d surface_ecef = WSG84::lla2ecef(surface_lla);
+    Vector3d surface_ecef = WGS84::lla2ecef(surface_lla);
 
     Vector3d los_ecef = sat_pos - surface_ecef;
 
@@ -101,10 +101,10 @@ TEST_F (TestSatellite, AzimuthElevationProvo)
     Vector2d az_el, clock;
     Vector3d sat_pos, sat_vel;
     sat.computePositionVelocityClock(time, sat_pos, sat_vel, clock);
-    Vector3d sat_lla = WSG84::ecef2lla(sat_pos);
+    Vector3d sat_lla = WGS84::ecef2lla(sat_pos);
 
     Vector3d provo_lla{40.246184 * DEG2RAD , -111.647769 * DEG2RAD, 1387.997511};
-    Vector3d provo_ecef = WSG84::lla2ecef(provo_lla);
+    Vector3d provo_ecef = WGS84::lla2ecef(provo_lla);
 
     Vector3d los_ecef = sat_pos - provo_ecef;
 
@@ -120,7 +120,7 @@ TEST_F (TestSatellite, IonoshereCalculation)
     Vector3d sat_pos, sat_vel;
     sat.computePositionVelocityClock(time, sat_pos, sat_vel, clock);
     Vector3d provo_lla{40.246184 * DEG2RAD , -111.647769 * DEG2RAD, 1387.997511};
-    Vector3d provo_ecef = WSG84::lla2ecef(provo_lla);
+    Vector3d provo_ecef = WGS84::lla2ecef(provo_lla);
     Vector3d los_ecef = sat_pos - provo_ecef;
     sat.los2azimuthElevation(provo_ecef, los_ecef, az_el);
 
@@ -139,8 +139,9 @@ TEST_F (TestSatellite, IonoshereCalculation)
 TEST_F (TestSatellite, PsuedorangeSim)
 {
     Vector3d provo_lla{40.246184 * DEG2RAD , -111.647769 * DEG2RAD, 1387.997511};
-    Vector3d provo_ecef = WSG84::lla2ecef(provo_lla);
-    Vector3d rec_vel = Vector3d::Constant(0);
+    Vector3d provo_ecef = WGS84::lla2ecef(provo_lla);
+    Vector3d rec_vel;
+    rec_vel << 1, 2, 3;
 
     Vector3d z;
 
@@ -150,10 +151,12 @@ TEST_F (TestSatellite, PsuedorangeSim)
                      0.1118E-07,-0.7451E-08,-0.5961E-07, 0.1192E-06,
                      0.1167E+06,-0.2294E+06,-0.1311E+06, 0.1049E+07};
     range_t rho;
-    computeRange(&rho, sat, &ion, time, provo_ecef);
+    computeRange(&rho, sat, &ion, time, provo_ecef, rec_vel);
+//    double rtklib_rate = doppler(time, sat, provo_ecef, rec_vel);
 
     EXPECT_NEAR(rho.range, z(0), 11); // These are off because of sagnac and troposphere compensation
     EXPECT_NEAR(rho.rate, z(1), 1e-4);
+//    EXPECT_NEAR(rho.rate, rtklib_rate, 1e-4);
 }
 
 TEST (Satellite, ReadFromFile)

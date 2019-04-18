@@ -1,0 +1,10 @@
+Header header
+inertial_sense/GTime time
+int32 sat_id
+float64 distance
+float64 azimuth
+float64 elevation
+geometry_msgs/Vector3 position_ECEF
+geometry_msgs/Vector3 velocity_ECEF
+float64 clock_bias
+float64 clock_bias_rate

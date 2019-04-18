@@ -9,7 +9,7 @@ using namespace Eigen;
 using namespace xform;
 
 
-struct WSG84
+struct WGS84
 {
     typedef std::vector<Vector3d, aligned_allocator<Vector3d>> VecVec3;
     static constexpr double A = 6378137.0;       // WGS-84 Earth semimajor axis (m)

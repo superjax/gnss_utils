@@ -5,19 +5,6 @@
 
 #include <Eigen/Core>
 
-#ifndef NDEBUG
-#define ASSERT(condition, ...) \
-    do { \
-        if (! (condition)) { \
-            std::cerr << "Assertion `" #condition "` failed in " << __FILE__ \
-                      << " line " << __LINE__ << ": " << printf(__VA_ARGS__) << std::endl; \
-            assert(condition); \
-        } \
-    } while (false)
-#else
-#   define ASSERT(...)
-#endif
-
 #include "GNSS_utils/datetime.h"
 #include "GNSS_utils/gtime.h"
 
@@ -58,7 +45,6 @@ typedef struct {
   double ndot; // ndot for CNAV
 } eph_t;
 
-using namespace Eigen;
 
 class Satellite
 {
@@ -74,22 +60,48 @@ public:
     Satellite(int id, int idx);
     Satellite(const eph_t& eph, int idx);
     void update(const GTime &time);
-    void computePositionVelocityClock(const GTime &g, const Ref<Vector3d> &pos, const Ref<Vector3d> &vel, const Ref<Vector2d> &clock);
-    void computeMeasurement(const GTime& rec_time, const Vector3d& receiver_pos, const Vector3d &receiver_vel, const Vector2d &clk_bias, Vector3d &z);
-    void los2azimuthElevation(const Vector3d& receiver_pos_ecef, const Vector3d& los_ecef, Vector2d& az_el) const;
-    Vector2d los2azimuthElevation(const Vector3d& receiver_pos_ecef, const Vector3d& los_ecef) const;
-    double ionosphericDelay(const GTime &t, const Vector3d& lla, const Vector2d& az_el) const;
-    double troposphericDelay(const GTime &t, const Vector3d& lla, const Vector2d& az_el) const;
+    void computePositionVelocityClock(const GTime &g, const Eigen::Ref<Eigen::Vector3d> &pos,
+                                      const Eigen::Ref<Eigen::Vector3d> &vel, const Eigen::Ref<Eigen::Vector2d> &clock);
+    void computeMeasurement(const GTime& rec_time, const Eigen::Vector3d& receiver_pos,
+                            const Eigen::Vector3d &receiver_vel, const Eigen::Vector2d &clk_bias,
+                            Eigen::Vector3d &z);
+    void los2azimuthElevation(const Eigen::Vector3d& receiver_pos_ecef,
+                              const Eigen::Vector3d& los_ecef, Eigen::Vector2d& az_el) const;
+    Eigen::Vector2d los2azimuthElevation(const Eigen::Vector3d& receiver_pos_ecef,
+                                         const Eigen::Vector3d& los_ecef) const;
+    double ionosphericDelay(const GTime &t, const Eigen::Vector3d& lla,
+                            const Eigen::Vector2d& az_el) const;
+    double troposphericDelay(const GTime &t, const Eigen::Vector3d& lla,
+                             const Eigen::Vector2d& az_el) const;
     double selectEphemeris(const GTime& time) const;
     void readFromRawFile(std::string filename);
     void addEphemeris(const eph_t& eph_);
-    Vector2d azimuthElevation(const GTime &t, const Vector3d& rec_pos_ecef);
+    Eigen::Vector2d azimuthElevation(const GTime &t, const Eigen::Vector3d& rec_pos_ecef);
 
     int id_;
     int idx_;
     eph_t eph_ = { 0 };
     GTime t;
-    Vector3d pos;
-    Vector3d vel;
-    Vector2d clk;
+    Eigen::Vector3d pos;
+    Eigen::Vector3d vel;
+    Eigen::Vector2d clk;
+};
+
+struct Obs
+{
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    GTime t;
+    uint8_t sat_idx; // index in sats_ SatVec
+    uint8_t sat;
+    uint8_t rcv;
+    uint8_t SNR;
+    uint8_t LLI; // loss-of-lock indicator
+    uint8_t code;
+    uint8_t qualL; // carrier phase cov
+    uint8_t qualP; // psuedorange cov
+    Eigen::Vector3d z; // [prange, doppler, cphase]
+
+    Obs();
+
+    bool operator < (const Obs& other);
 };

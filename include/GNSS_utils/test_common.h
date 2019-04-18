@@ -99,4 +99,6 @@ typedef struct
 void eph2pos(const GTime& t, const eph_t *eph, Eigen::Vector3d& pos, double *dts);
 double ionmodel(const GTime& t, const double *pos, const double *azel);
 double ionosphericDelay(const ionoutc_t *ionoutc, GTime g, double *llh, double *azel);
-void computeRange(range_t *rho, Satellite &eph, ionoutc_t *ionoutc, GTime g, Vector3d& xyz);
+void computeRange(range_t *rho, Satellite &eph, ionoutc_t *ionoutc, GTime g, Eigen::Vector3d& xyz, Eigen::Vector3d &dxyz);
+double doppler(GTime& t, Satellite &sat, const Eigen::Vector3d& rec_pos, const Eigen::Vector3d& rec_vel);
+

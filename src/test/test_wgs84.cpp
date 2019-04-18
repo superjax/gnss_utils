@@ -8,7 +8,7 @@ TEST (Gnss, lla2ecef)
     Vector3d lla = {40.246184 * DEG2RAD , -111.647769 * DEG2RAD, 1387.997511}; // BYU Campus
     Vector3d ecef_known = {-1798810.23, -4532232.54, 4099784.74};
 
-    Vector3d ecef_calc = WSG84::lla2ecef(lla);
+    Vector3d ecef_calc = WGS84::lla2ecef(lla);
 
     ASSERT_MAT_NEAR(ecef_known, ecef_calc, 1e-2);
 }
@@ -18,7 +18,7 @@ TEST (Gnss, ecef2lla)
     Vector3d ecef = {-1798810.23, -4532232.54, 4099784.74};
     Vector3d lla_known = {40.246184 * DEG2RAD , -111.647769 * DEG2RAD, 1387.998309};
 
-    Vector3d lla_calc = WSG84::ecef2lla(ecef);
+    Vector3d lla_calc = WGS84::ecef2lla(ecef);
 
     ASSERT_MAT_NEAR(lla_known, lla_calc, 1e-6);
 }
@@ -28,8 +28,8 @@ TEST (Gnss, ecef2lla2ecef)
     Vector3d ecef = {-1798810.23, -4532232.54, 4099784.74};
     Vector3d lla_known = {40.246184 * DEG2RAD , -111.647769 * DEG2RAD, 1387.998309};
 
-    Vector3d lla_calc = WSG84::ecef2lla(ecef);
-    Vector3d ecef_calc = WSG84::lla2ecef(lla_calc);
+    Vector3d lla_calc = WGS84::ecef2lla(ecef);
+    Vector3d ecef_calc = WGS84::lla2ecef(lla_calc);
 
     ASSERT_MAT_NEAR(ecef_calc, ecef, 1e-6);
 }
@@ -37,13 +37,13 @@ TEST (Gnss, ecef2lla2ecef)
 TEST (Gnss, x_ned2ecef)
 {
     Vector3d lla0 = {40.247082 * DEG2RAD, -111.647776 * DEG2RAD, 1387.998309};
-    Vector3d ecef0 = WSG84::lla2ecef(lla0);
+    Vector3d ecef0 = WGS84::lla2ecef(lla0);
 
     Vector3d ned1 = {-54.976484, 1.276565, 0.000237};
     Vector3d lla1 = {40.246587 * DEG2RAD, -111.647761 * DEG2RAD, 1387.998309};
-    Vector3d ecef1 = WSG84::lla2ecef(lla1);
+    Vector3d ecef1 = WGS84::lla2ecef(lla1);
 
-    xform::Xformd x_e2n = WSG84::x_ecef2ned(ecef0);
+    xform::Xformd x_e2n = WGS84::x_ecef2ned(ecef0);
     Vector3d ecef_hat = x_e2n.transforma(ned1);
     Vector3d ned1_hat = x_e2n.transformp(ecef1);
 
@@ -54,8 +54,8 @@ TEST (Gnss, x_ned2ecef)
 TEST (Gnss, ecef2ned_check_axes)
 {
     Vector3d lla0 = {40.247082 * DEG2RAD, -111.647776 * DEG2RAD, 1387.998309};
-    Vector3d ecef0 = WSG84::lla2ecef(lla0);
-    xform::Xformd x_e2n = WSG84::x_ecef2ned(ecef0);
+    Vector3d ecef0 = WGS84::lla2ecef(lla0);
+    xform::Xformd x_e2n = WGS84::x_ecef2ned(ecef0);
 
     double sp = std::sin(lla0(0));
     double cp = std::cos(lla0(0));
@@ -77,15 +77,15 @@ TEST (Gnss, ecef2ned_check_axes)
 TEST (Gnss, ned2ecef)
 {
     Vector3d lla0 = {40.247082 * DEG2RAD, -111.647776 * DEG2RAD, 1387.998309};
-    Vector3d ecef0 = WSG84::lla2ecef(lla0);
+    Vector3d ecef0 = WGS84::lla2ecef(lla0);
 
     Vector3d ned1 = {-54.976484, 1.276565, 0.000237};
     Vector3d lla1 = {40.246587 * DEG2RAD, -111.647761 * DEG2RAD, 1387.998309};
-    Vector3d ecef1 = WSG84::lla2ecef(lla1);
+    Vector3d ecef1 = WGS84::lla2ecef(lla1);
 
-    xform::Xformd x_e2n = WSG84::x_ecef2ned(ecef0);
-    Vector3d ecef_hat = WSG84::ned2ecef(x_e2n, ned1);
-    Vector3d ned1_hat = WSG84::ecef2ned(x_e2n, ecef1);
+    xform::Xformd x_e2n = WGS84::x_ecef2ned(ecef0);
+    Vector3d ecef_hat = WGS84::ned2ecef(x_e2n, ned1);
+    Vector3d ned1_hat = WGS84::ecef2ned(x_e2n, ecef1);
 
     EXPECT_MAT_NEAR(ecef_hat, ecef1, 1e-6);
     EXPECT_MAT_NEAR(ned1_hat, ned1, 1e-6);
@@ -97,8 +97,8 @@ TEST (Gnss, lla2ned)
     Vector3d lla1 = {40.246587 * DEG2RAD, -111.647761 * DEG2RAD, 1387.998309};
     Vector3d ned1 = {-54.976484, 1.276565, 0.000237};
 
-    Vector3d ned1_hat = WSG84::lla2ned(lla0, lla1);
-    Vector3d lla1_hat = WSG84::ned2lla(lla0, ned1);
+    Vector3d ned1_hat = WGS84::lla2ned(lla0, lla1);
+    Vector3d lla1_hat = WGS84::ned2lla(lla0, ned1);
 
     EXPECT_MAT_NEAR(lla1_hat, lla1, 1e-6);
     EXPECT_MAT_NEAR(ned1_hat, ned1, 1e-6);
