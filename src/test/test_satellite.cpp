@@ -155,7 +155,7 @@ TEST_F (TestSatellite, PsuedorangeSim)
 //    double rtklib_rate = doppler(time, sat, provo_ecef, rec_vel);
 
     EXPECT_NEAR(rho.range, z(0), 11); // These are off because of sagnac and troposphere compensation
-    EXPECT_NEAR(rho.rate, z(1), 1e-4);
+    EXPECT_NEAR(rho.rate, z(1), 1e-2);
 //    EXPECT_NEAR(rho.rate, rtklib_rate, 1e-4);
 }
 

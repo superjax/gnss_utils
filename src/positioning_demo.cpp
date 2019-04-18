@@ -48,7 +48,7 @@ void PP_Demo::obsVecCB(const inertial_sense::GNSSObsVecConstPtr &msg)
         new_o.SNR = o.SNR;
         new_o.LLI = o.LLI;
         new_o.code = o.code;
-        new_o.z << o.P, Satellite::LAMBDA_L1*o.D, o.L;
+        new_o.z << o.P, -Satellite::LAMBDA_L1*o.D, o.L;
         new_obs.push_back(new_o);
     }
     filterObs(new_obs);
@@ -57,6 +57,20 @@ void PP_Demo::obsVecCB(const inertial_sense::GNSSObsVecConstPtr &msg)
         calcPosition();
         logPosition();
     }
+    if (obs_.size() > 0)
+    {
+        if (sat_to_track < 0)
+            sat_to_track = obs_[0].sat;
+        int track_idx = getSatIdx(sat_to_track);
+        const Obs& o(obs_[track_idx]);
+        double dt = (o.t - t_prev).toSec();
+        double dop_hat = (o.z[0] - prange_prev)/dt;
+        prange_prev = o.z[0];
+        t_prev = o.t;
+        std::cout << "dop_hat: " << dop_hat << " dopz: " << o.z[1] << std::endl;
+    }
+
+
 }
 
 void PP_Demo::ephCB(const inertial_sense::GNSSEphemerisConstPtr &eph)
@@ -174,8 +188,8 @@ void PP_Demo::logPosition()
 {
     log_.log((double)(time_prev_ - start_time_).toSec());
     Vector3d ref_vel_ned = WGS84::x_ecef2ned(WGS84::lla2ecef(lla_)).rotp(ref_vel_ecef_);
-    std::cout << "lla: " << lla_.transpose() << ", ref: " << ref_lla_.transpose() << ",\t ";
-    std::cout << "vel: " << vel_ned_.transpose() << ", ref: " << ref_vel_ned.transpose() << std::endl;
+//    std::cout << "lla: " << lla_.transpose() << ", ref: " << ref_lla_.transpose() << ",\t ";
+//    std::cout << "vel: " << vel_ned_.transpose() << ", ref: " << ref_vel_ned.transpose() << std::endl;
     log_.logVectors(lla_, ref_lla_, vel_ned_, ref_vel_ned);
 }
 

@@ -53,4 +53,8 @@ public:
     Eigen::Vector3d ref_vel_ecef_, vel_ned_;
     Logger log_;
     GTime start_time_;
+
+    int sat_to_track = -1;
+    double prange_prev;
+    GTime t_prev;
 };

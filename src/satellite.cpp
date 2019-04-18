@@ -66,18 +66,16 @@ void Satellite::addEphemeris(const eph_t &_eph)
 }
 
 //#define DBG(x) printf(#x": %6.6f\n", x); std::cout << std::flush;
-void Satellite::computeMeasurement(const GTime& rec_time, const Vector3d& rec_pos, const Vector3d& receiver_vel, const Vector2d& clk_bias, Vector3d& z )
+void Satellite::computeMeasurement(const GTime& rec_time, const Vector3d& rec_pos, const Vector3d& rec_vel, const Vector2d& clk_bias, Vector3d& z )
 {
-    Vector3d sat_pos_tr, sat_vel_tr;
-    Vector2d sat_clk;
-    computePositionVelocityClock(rec_time, sat_pos_tr, sat_vel_tr, sat_clk);
-    double range = (sat_pos_tr - rec_pos).norm();
-    double sagnac = OMEGA_EARTH * (sat_pos_tr.x()*rec_pos.y() - sat_pos_tr.y()*rec_pos.x())/C_LIGHT;
+    update(rec_time);
+    double range = (pos - rec_pos).norm();
+    double sagnac = OMEGA_EARTH * (pos.x()*rec_pos.y() - pos.y()*rec_pos.x())/C_LIGHT;
     range += sagnac;
     double tau = range / C_LIGHT;  // Time it took for observation to get here
 
     // extrapolate satellite position backwards in time
-    Vector3d sat_pos_ts = sat_pos_tr - sat_vel_tr * tau;
+    Vector3d sat_pos_ts = pos - vel * tau;
 
     // Earth rotation correction. The change in velocity can be neglected.
     Vector3d earth_rot = sat_pos_ts.cross(e_z * OMEGA_EARTH * tau);
@@ -90,13 +88,12 @@ void Satellite::computeMeasurement(const GTime& rec_time, const Vector3d& rec_po
     range += sagnac;
 
     // adjust range by the satellite clock offset
-    z(0) = range + C_LIGHT * (clk_bias(0) - sat_clk(0));
+    z(0) = range + C_LIGHT * (clk_bias(0) - clk(0));
 
-    // compute relative velocity between receiver and satellite, adjusted by the clock drift rate
-    z(1) = (vel - receiver_vel).dot(los/range)
-            + OMEGA_EARTH / C_LIGHT * e_z.dot(sat_vel.cross(receiver_vel))
-            + C_LIGHT * (clk_bias(1) - sat_clk(1));
-    printf("coriolis prange = %f\n", OMEGA_EARTH / C_LIGHT * e_z.dot(vel.cross(receiver_vel)));
+    // compute relative velocity between receiver and satellite, adjusted by the clock drift rate and coriolis
+    z(1) = (vel - rec_vel).dot(los/range)
+            + Satellite::OMEGA_EARTH / Satellite::C_LIGHT * (vel[1]*rec_pos[0] + pos[1]*rec_vel[0] - vel[0]*rec_pos[1] - pos[0]*rec_vel[1]) /// TODO check this math
+            + C_LIGHT * (clk_bias(1) - clk(1));
 
     // Don't calculate lla if we are at (0, 0, 0)
     if (rec_pos.norm() > 0)

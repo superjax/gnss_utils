@@ -63,7 +63,7 @@ public:
     void computePositionVelocityClock(const GTime &g, const Eigen::Ref<Eigen::Vector3d> &pos,
                                       const Eigen::Ref<Eigen::Vector3d> &vel, const Eigen::Ref<Eigen::Vector2d> &clock);
     void computeMeasurement(const GTime& rec_time, const Eigen::Vector3d& receiver_pos,
-                            const Eigen::Vector3d &receiver_vel, const Eigen::Vector2d &clk_bias,
+                            const Eigen::Vector3d &rec_vel, const Eigen::Vector2d &clk_bias,
                             Eigen::Vector3d &z);
     void los2azimuthElevation(const Eigen::Vector3d& receiver_pos_ecef,
                               const Eigen::Vector3d& los_ecef, Eigen::Vector2d& az_el) const;
