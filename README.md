@@ -19,8 +19,8 @@ I used a lot of code from [RTKLIB](https://github.com/tomojitakasu/RTKLIB) and [
 There is a short LaTeX beamer presentation in the `doc` folder which contains a derivation of the algorithm I'm using for Iterated least-squares.  You should be able to build it with a standard LaTeX toolchain.
 
 ## TODO:
-GLONASS Support
-UBLOX M8T reading/parsing
+ - GLONASS Support
+ - UBLOX M8T reading/parsing
 
 
 
