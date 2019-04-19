@@ -1,9 +1,12 @@
 #include <Eigen/Core>
 
-#include "GNSS_utils/satellite.h"
-#include "GNSS_utils/wgs84.h"
+#include "gnss_utils/satellite.h"
+#include "gnss_utils/wgs84.h"
 
 using namespace Eigen;
+
+namespace gnss_utils
+{
 
 const double Satellite::GM_EARTH = 3.986005e14;
 const double Satellite::OMEGA_EARTH = 7.2921151467e-5;
@@ -256,6 +259,9 @@ double Satellite::selectEphemeris(const GTime &time) const
 
 void Satellite::update(const GTime &time)
 {
+    if (time == t)
+        return;
+
     double dt = selectEphemeris(time);
 
     if (dt > MAXDTOE)
@@ -342,8 +348,8 @@ void Satellite::update(const GTime &time)
 
 void Satellite::computePositionVelocityClock(const GTime& time, const Ref<Vector3d> &_pos, const Ref<Vector3d> &_vel, const Ref<Vector2d>& _clock)
 {
-    if (time != t)
-        update(time);
+    update(time);
+
     // const-cast hackery to get around Ref
     // https://eigen.tuxfamily.org/dox/TopicFunctionTakingEigenTypes.html
     Ref<Vector3d> pos_ref = const_cast<Ref<Vector3d>&>(_pos);
@@ -391,4 +397,5 @@ Obs::Obs()
 bool Obs::operator <(const Obs& other)
 {
     return sat_idx < other.sat_idx;
+}
 }

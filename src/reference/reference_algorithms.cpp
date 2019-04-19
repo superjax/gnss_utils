@@ -1,12 +1,13 @@
 ﻿#include <Eigen/Core>
 
-#include "GNSS_utils/satellite.h"
-#include "GNSS_utils/gtime.h"
-#include "GNSS_utils/datetime.h"
-#include "GNSS_utils/test_common.h"
-#include "GNSS_utils/wgs84.h"
+#include "gnss_utils/satellite.h"
+#include "gnss_utils/gtime.h"
+#include "gnss_utils/datetime.h"
+#include "gnss_utils/test_common.h"
+#include "gnss_utils/wgs84.h"
 
 using namespace Eigen;
+using namespace gnss_utils;
 
 #define SQR(x) (x*x)
 

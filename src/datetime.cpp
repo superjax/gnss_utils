@@ -1,7 +1,10 @@
 #include <cmath>
 
-#include "GNSS_utils/datetime.h"
-#include "GNSS_utils/gtime.h"
+#include "gnss_utils/datetime.h"
+#include "gnss_utils/gtime.h"
+
+namespace gnss_utils
+{
 
 DateTime::DateTime()
 {}
@@ -46,4 +49,5 @@ std::ostream& operator<<(std::ostream& os, const DateTime& dt)
     os << dt.month << "/" << dt.day << "/" << dt.year << " "
        << dt.hour << ":" << dt.minute << ":" << dt.second;
     return os;
+}
 }

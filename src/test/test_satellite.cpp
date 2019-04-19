@@ -1,9 +1,13 @@
 #include <gtest/gtest.h>
 
-#include "GNSS_utils/satellite.h"
-#include "GNSS_utils/test_common.h"
-#include "GNSS_utils/wgs84.h"
-#include "GNSS_utils/datetime.h"
+#include "gnss_utils/satellite.h"
+#include "gnss_utils/test_common.h"
+#include "gnss_utils/wgs84.h"
+#include "gnss_utils/datetime.h"
+
+using namespace Eigen;
+using namespace gnss_utils;
+
 
 class TestSatellite : public ::testing::Test
 {
@@ -270,4 +274,27 @@ TEST (Satellite, CheckMagnitudeOfCarrierPhase)
   sat.computeMeasurement(log_start, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z);
 
   EXPECT_NEAR(z(2), 1.3e8, 1e7);
+}
+
+TEST (Satellite, CheckRepeatedCalls)
+{
+    Satellite sat(3, 0);
+    sat.readFromRawFile(GNSS_UTILS_DIR"/sample/eph.dat");
+    GTime log_start = GTime::fromUTC(1541454646,  0.993);
+    Vector3d rec_pos {-1798904.13, -4532227.1 ,  4099781.95};
+    Vector3d z11, z12, z13;
+    Vector3d z21, z22, z23;
+    GTime t1 = log_start + 30;
+    GTime t2 = log_start + 60;
+    sat.computeMeasurement(t1, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z11);
+    sat.computeMeasurement(t1, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z12);
+    sat.computeMeasurement(t2, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z21);
+    sat.computeMeasurement(t2, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z22);
+    sat.computeMeasurement(t1, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z13);
+    sat.computeMeasurement(t2, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z23);
+
+    EXPECT_MAT_EQ(z11, z12);
+    EXPECT_MAT_EQ(z11, z13);
+    EXPECT_MAT_EQ(z21, z22);
+    EXPECT_MAT_EQ(z21, z23);
 }

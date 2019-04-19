@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "GNSS_utils/wgs84.h"
-#include "GNSS_utils/test_common.h"
+#include "gnss_utils/wgs84.h"
+#include "gnss_utils/test_common.h"
+
+using namespace Eigen;
 
 TEST (Gnss, lla2ecef)
 {

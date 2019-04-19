@@ -5,8 +5,11 @@
 
 #include <Eigen/Core>
 
-#include "GNSS_utils/datetime.h"
-#include "GNSS_utils/gtime.h"
+#include "gnss_utils/datetime.h"
+#include "gnss_utils/gtime.h"
+
+namespace gnss_utils
+{
 
 typedef struct {
   int32_t sat; // satellite number
@@ -105,3 +108,5 @@ struct Obs
 
     bool operator < (const Obs& other);
 };
+
+}

@@ -1,6 +1,9 @@
 #include <cmath>
-#include "GNSS_utils/gtime.h"
-#include "GNSS_utils/datetime.h"
+#include "gnss_utils/gtime.h"
+#include "gnss_utils/datetime.h"
+
+namespace gnss_utils
+{
 
 GTime::GTime()
 {}
@@ -185,4 +188,6 @@ GTime GTime::fromTime(int time, double sec)
   out.tow_sec = out.week % DateTime::SECONDS_IN_WEEK + sec;
   out.week /= DateTime::SECONDS_IN_WEEK;
   return out;
+}
+
 }

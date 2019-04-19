@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <GNSS_utils/gtime.h>
-#include <GNSS_utils/datetime.h>
+#include <gnss_utils/gtime.h>
+#include <gnss_utils/datetime.h>
+
+using namespace gnss_utils;
 
 TEST (Time, FromDateTimeKnown)
 {

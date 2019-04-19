@@ -1,8 +1,10 @@
 #pragma once
 
 #include "ostream"
-#include "GNSS_utils/gtime.h"
+#include "gnss_utils/gtime.h"
 
+namespace gnss_utils
+{
 class GTime;
 class DateTime
 {
@@ -34,3 +36,4 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& os, const DateTime& dt);
+}

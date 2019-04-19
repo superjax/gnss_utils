@@ -2,7 +2,10 @@
 #include <stdint.h>
 #include <iostream>
 
-#include "GNSS_utils/datetime.h"
+#include "gnss_utils/datetime.h"
+
+namespace gnss_utils
+{
 
 class DateTime;
 class GTime
@@ -42,4 +45,6 @@ inline std::ostream & operator << (std::ostream &out, const GTime &t)
     out << "[ " << t.week;
     out << ", " << t.tow_sec << " ]";
     return out;
+}
+
 }

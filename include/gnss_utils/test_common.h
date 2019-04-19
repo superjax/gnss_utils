@@ -3,9 +3,9 @@
 
 #include <Eigen/Core>
 
-#include "GNSS_utils/satellite.h"
-#include "GNSS_utils/gtime.h"
-#include "GNSS_utils/datetime.h"
+#include "gnss_utils/satellite.h"
+#include "gnss_utils/gtime.h"
+#include "gnss_utils/datetime.h"
 
 static const double RAD2DEG = 180.0 / M_PI;
 static const double DEG2RAD = M_PI / 180.0;
@@ -82,7 +82,7 @@ do{  \
 
 typedef struct
 {
-    GTime g;
+    gnss_utils::GTime g;
     double range; // pseudorange
     double rate;
     double d; // geometric distance
@@ -96,9 +96,12 @@ typedef struct
     double alpha0,alpha1,alpha2,alpha3;
     double beta0,beta1,beta2,beta3;
 } ionoutc_t;
-void eph2pos(const GTime& t, const eph_t *eph, Eigen::Vector3d& pos, double *dts);
-double ionmodel(const GTime& t, const double *pos, const double *azel);
-double ionosphericDelay(const ionoutc_t *ionoutc, GTime g, double *llh, double *azel);
-void computeRange(range_t *rho, Satellite &eph, ionoutc_t *ionoutc, GTime g, Eigen::Vector3d& xyz, Eigen::Vector3d &dxyz);
-double doppler(GTime& t, Satellite &sat, const Eigen::Vector3d& rec_pos, const Eigen::Vector3d& rec_vel);
+void eph2pos(const gnss_utils::GTime& t, const gnss_utils::eph_t *eph,
+             Eigen::Vector3d& pos, double *dts);
+double ionmodel(const gnss_utils::GTime& t, const double *pos, const double *azel);
+double ionosphericDelay(const ionoutc_t *ionoutc, gnss_utils::GTime g, double *llh, double *azel);
+void computeRange(range_t *rho, gnss_utils::Satellite &eph, ionoutc_t *ionoutc,
+                  gnss_utils::GTime g, Eigen::Vector3d& xyz, Eigen::Vector3d &dxyz);
+double doppler(gnss_utils::GTime& t, gnss_utils::Satellite &sat,
+               const Eigen::Vector3d& rec_pos, const Eigen::Vector3d& rec_vel);
 
