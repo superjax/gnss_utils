@@ -3,7 +3,7 @@
 
 This is a bunch of utilities for handling Raw GNSS Data, as well as an example ROS node for calculating position, velocity and clock bias with iterated least-squares.
 
-I made this so that I could feel confident that I was properly handling the data before I put this into a much larger project.  I would not recommend actually using the output of the ROS node for anything - it's not tested, and there are _much_ better ways of doing GNSS positioning. 
+I made this so that I could feel confident that I was properly handling the data before I put this into a much larger project.  I would not recommend actually using the output of the ROS node for anything - it's not particularly well tested, and there are _much_ better ways of doing GNSS positioning. 
 
 ## Building
 The main library depends only on Eigen.  If you don't want the test suite or the ROS node, you should be able to build the library alone (or add it as a subdirectory of a larger project).
