@@ -65,8 +65,7 @@ if (${catkin_FOUND})
         src/positioning_demo.cpp)
     target_include_directories(point_position_demo PUBLIC
         include
-        ${catkin_INCLUDE_DIRS}
-        lib/logger/include)
+        ${catkin_INCLUDE_DIRS})
     target_link_libraries(point_position_demo gnss_utils ${catkin_LIBRARIES})
     add_dependencies(point_position_demo
         gnss_utils_generate_messages_cpp)
