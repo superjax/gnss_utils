@@ -52,7 +52,7 @@ if (${GTEST_FOUND})
             ${GTEST_INCLUDE_DIRS})
 endif()
 
-if (${catkin_FOUND})
+if (${catkin_FOUND} AND ${BUILD_GNSS_UTILS_ROS})
     message(STATUS "Found Catkin, building gnss_utils ROS demo")
     add_message_files(FILES SatInfo.msg)
     generate_messages(DEPENDENCIES std_msgs geometry_msgs inertial_sense)
