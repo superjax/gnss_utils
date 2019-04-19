@@ -31,7 +31,7 @@
 
 \addtobeamertemplate{frametitle}{}{%
         \begin{tikzpicture}[remember picture,overlay]
-        \node[anchor=north east,yshift=2pt] at (current page.north east) {\includegraphics[height=0.75cm]{magicc_logo_white}};
+        \node[anchor=north east,yshift=2pt] at (current page.north east) {\includegraphics[height=0.75cm]{images/magicc_logo_white.png}};
         \end{tikzpicture}}
 
 \AtBeginSection{\frame{\frametitle{Outline}\tableofcontents[currentsection]}}
@@ -114,10 +114,10 @@ We have to account for the rotation of the earth when computing the relative dis
 \end{frame}
 
 \begin{frame}\frametitle{Pseudorange Measurement}
-Here is the full pseudorange model put into terms of the recevier time (neglecting the Sagnac effect)
+Here is the full pseudorange model put into terms of the recevier time (including the Sagnac effect)
 \begin{align*}
-\hat{\rho}_{s}\left(\p_{s/e}^{e},\tau_{b},t_r\right) &= \norm{\p_{s/e}^{e}\left(t_r\right)-\p_{b/e}^{e}\left(t_r\right)}+\frac{1}{c}\w_{e}^{\top}
-\skew{\p_{s/e}^{e}\left(t_r\right)}\p_{b/e}^{e}\left(t_r\right)\\
+\hat{\rho}_{s}\left(\p_{s/e}^{e},\tau_{b},t_r\right) &= \norm{\p_{s/e}^{e}\left(t_s\right)-\p_{b/e}^{e}\left(t_r\right)}+\frac{1}{c}\w_{e}^{\top}
+\skew{\p_{s/e}^{e}\left(t_s\right)}\p_{b/e}^{e}\left(t_r\right)\\
 &+\delta^{atm}\left(\p_{s/e}^{e},\p_{b/e}^{e},t_r\right)+c\left(\tau_{b}-\tau_{s}\right)+\xi_{\rho}
 \end{align*}
 where $\delta^{atm}\left(\p_{s/e}^{e},\p_{b/e}^{e},t_r\right)$ is given
@@ -134,16 +134,19 @@ by the Klobuchar Algorithm and $\w_{e}$ is the rotation of the earth
 	\item $\dot{\rho}$ is more accurate than $\rho$
 \end{itemize}
 If we take the derivative of the pseudorange model, we get the pseudorange rate
-\begin{equation}
-	\dot{\hat{\rho}}_{s}\left(\p_{s/e}^{e},\tau_{b},t\right)\approx\norm{\dot{\p}_{s/e}^{e}\left(t\right)-\dot{\p}_{b/e}^{e}\left(t\right)}+c\left(\dot{\tau_{b}}-\dot{\tau}_{s}\right)+\xi_{\dot{\rho}}
-\end{equation}
+
+\begin{align}
+	\dot{\hat{\rho}}_{s}\left(\p_{s/e}^{e},\tau_{b},t\right) =& \left(\v_{s/e}^{e}\left(t\right)-\v_{b/e}^{e}\left(t\right)\right)^\top \e_{s/b}^e+c\left(\dot{\tau_{b}}-\dot{\tau}_{s}\right) \\ 
+															  & + \frac{1}{c}\w_e^\top \left(\skew{\v_{s/e}^e}\p_{b/e}^e + \skew{\p_{s/e}^e}\v_{b/e}^e\right)
+	                                                           +\xi_{\dot{\rho}}
+\end{align}
+where $\e_{s/b}^e$ is the unit vector from the receiver to the satellite.
 \end{frame}
 
 \begin{frame}\frametitle{Calculating Position and Velocity Using $\rho$ and $\dot{\rho}$}
 We wish to estimate the receiver position $\p^{r}$,
 velocity $\v^{r}$, clock bias $\tau^{r}$ and clock bias rate $\dot{\tau}^{r}$
-given the pseudorange and psuedorange rate measurement to $n$ satellites
-$\prange_{i}$ and the satellite position.
+given the position, pseudorange and psuedorange rate measurement to $n$ satellites.
 \begin{equation}
 	\x=\begin{bmatrix}\p& \v& \tau& \dot{\tau} \end{bmatrix}^\top,
 \end{equation}
@@ -193,10 +196,10 @@ Iterated approach:
 \left(\v^{i}-\hat{\v}\right)^{\top}\hat{\e}^{i}-\left(\v^{i}-\hat{\v}_{0}^{r}\right)^{\top}\hat{\e}_{0}^{i}+c\left(\dot{\hat{\tau}}-\dot{\hat{\tau}}_{0}\right)
 \end{bmatrix}\\
 & \approx\begin{bmatrix}\norm{\p^{i}-\hat{\p}_{0}}-\frac{\p^{i}-\hat{\p_{0}}}{\norm{\p^{i}-\hat{\p}_{0}}}\tilde{\p}+c\tilde{\tau}-\norm{\p^{i}-\p_{0}}+\eta^{i}\\
-\left(\v^{i}-\hat{\v}_{0}\right)^{\top}\hat{\e}_{0}^{i}+\tilde{\v}^{\top}\hat{\e}_{0}^{i}-\left(\v^{i}-\hat{\v}_{0}^{r}\right)^{\top}\e_{0}^{i}+c\left(\dot{\tilde{\tau}}\right)
+\left(\v^{i}-\hat{\v}_{0}\right)^{\top}\hat{\e}_{0}^{i}-\tilde{\v}^{\top}\hat{\e}_{0}^{i}-\left(\v^{i}-\hat{\v}_{0}^{r}\right)^{\top}\e_{0}^{i}+c\left(\dot{\tilde{\tau}}\right)
 \end{bmatrix}\\
 & =\begin{bmatrix}-\left(\hat{\e}_{0}^{i}\right)^{\top} & 0 & c & 0\\
-\tilde{\v}^{\top} & \hat{\e}_{0}^{i} & 0 & c
+0 & -\left(\hat{\e}_{0}^{i}\right)^\top & 0 & c
 \end{bmatrix}\begin{bmatrix}\tilde{\p}\\
 \tilde{\v}\\
 \tilde{\tau}\\
@@ -217,12 +220,12 @@ Stack the linear equations for all $N$ satellites
 \delta\prange^{N}\\
 \delta\dot{\prange}^{N}
 \end{bmatrix} & =\begin{bmatrix}-\left(\hat{\e}^{1}\right)^{\top} & 0 & c & 0\\
-\tilde{\v}^{\top} & \hat{\e}^{1} & 0 & c\\
+0 & -\left(\hat{\e}^{1}\right)^{\top} & 0 & c\\
 -\left(\hat{\e}^{2}\right)^{\top} & 0 & c & 0\\
-\tilde{\v}^{\top} & \hat{\e}^{2} & 0 & c\\
+0 & -\left(\hat{\e}^{2}\right)^{\top} & 0 & c\\
 \vdots\\
 -\left(\hat{\e}^{N}\right)^{\top} & 0 & c & 0\\
-\tilde{\v}^{\top} & \hat{\e}^{N} & 0 & c
+0 & -\left(\hat{\e}^{N}\right)^{\top}& 0 & c
 \end{bmatrix}\begin{bmatrix}\tilde{\p}\\
 \tilde{\v}\\
 \tilde{\tau}\\
@@ -270,11 +273,11 @@ Repeat until convergence
 \end{frame}
 
 \begin{frame}\frametitle{Carrier-Phase Signal}
-Modern receiver are also able to measure the number of cycles the carrier wave they are tracking have passed.
+Modern receiver are also able to measure the number of cycles the carrier wave they are tracking have passed.  This is essentially the integrated pseudorange rate.
 
 \begin{align}
-\Phi_{b}^s&=\underbrace{\frac{c}{\lambda}\norm{\p_{i/e}^{e}-\p_{b/e}^{e}}}_{\text{range}}+\underbrace{\frac{c}{\lambda}\left(\tau_{b}-\tau_{i}\right)}_{\text{clk bias}}+\underbrace{\left(\Phi_{b,0}-\Phi_{i,0}+N_{b}^{s}\right)}_{\text{phase bias $B_{b}^{i}$}}+\frac{1}{\lambda}\left(T_b^i - I_b^s\right) + \xi_{\Phi} \\
-&= \frac{1}{\lambda}\left( \rho_b^i + cd\tau_{b/i} + B_b^i + T_b^i - I_r^s \right) 
+\Phi_{b}^s&=\underbrace{\frac{c}{\lambda}\norm{\p_{i/e}^{e}-\p_{b/e}^{e}}}_{\text{range}}+\underbrace{\frac{c}{\lambda}\left(\tau_{b}-\tau_{i}\right)}_{\text{clock bias}}+\underbrace{\left(\Phi_{b,0}-\Phi_{i,0}+N_{b}^{s}\right)}_{\text{phase bias $B_{b}^{i}$}}+\frac{1}{\lambda}\left(T_b^i - I_b^s\right) + \xi_{\Phi} \\
+&= \frac{1}{\lambda}\left( \rho_b^i + cd\tau_{b/i} + B_b^i + T_b^i - I_r^s \right) + \xi_{\Phi}
 \end{align}
 
 Where $\lambda$ is the wavelength, and $N_{b}^{s}$ is known as the \emph{integer ambiguity}.
@@ -295,7 +298,7 @@ B_{rb}^{i} & =\left(\Phi_{r,0}-\Phi_{i,0}+N_{r}^{i}\right)-\left(\Phi_{b,0}-\Phi
 \end{frame}
 
 \begin{frame}\frametitle{Double Differencing}
-Cancel out the clock error and the initial phase bias error
+Now, we can cancel out the clock error and the initial phase bias error by differencing two single differenced measurements between two satellites
 \begin{align*}
 	\Phi_{rb}^{ij} &=\Phi_{rb}^{i}-\Phi_{rb}^{j} \nonumber\\
 	&= \frac{1}{\lambda} \left(\left(\rho_{rb}^i -cd\tau_{rb}^i + B_{rb}^i\right) - \left(\rho_{rb}^j -cd\tau_{rb}^j + B_{rb}^j \right)\right)\\
@@ -333,7 +336,7 @@ Steps:
 \begin{enumerate}
 	\item acheive a floating-point estimate of $N_{rb}^{ij}$,
 	\item perform a search across the likely region of integer combinations to get the most likely candidate.
-	\item fuse best integer estimate into the Kalman Filter as a measurement.
+	\item fuse best integer combination into the Kalman Filter as a measurement.
 \end{enumerate}
 Doing this efficiently is a fertile research area. (I've never seen an MHE version, and it could probably be far superior, potentially even ``base-less'')
 \end{frame}
