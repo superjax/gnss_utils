@@ -8,8 +8,8 @@ I made this so that I could feel confident that I was properly handling the data
 ## Building
 The main library depends only on Eigen.  If you don't want the test suite or the ROS node, you should be able to build the library alone (or add it as a subdirectory of a larger project).  Building is the typical cmake - make workflow, or you can just put this in the `src` directory of a catkin workspace.
 
-If catkin is detected, then the `point_positioning_demo` ROS node will be built.
-If gtest is detected, then the test suite will be built.
+ - If `catkin` is detected, then the `point_positioning_demo` ROS node will be built.
+ - If `gtest` is detected, then the test suite will be built.
 
 I have abstracted as much as I can using C++ classes.  This results in (what I think is) really clean and understandable code.  Projects like RTKLIB are amazing, but the old-style C code is a little difficult for me to read.  My intention with releasing this package is that someone else out there will be able to get running faster by modifying my code, as opposed to starting with porting RTKLIB.
 
