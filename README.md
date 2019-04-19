@@ -1,7 +1,7 @@
 # GNSS Utils
 [![Build Status](https://api.travis-ci.com/superjax/gnss_utils.svg?branch=master)](https://travis-ci.com/superjax/gnss_utils)
 
-This a library used for handling Raw GNSS Data, as well as an example ROS node for calculating position, velocity and clock bias with iterated least-squares.
+This a library used for handling raw GNSS data, as well as an example ROS node for calculating position, velocity and clock bias with iterated least-squares.
 
 I made this so that I could feel confident that I was properly handling the data before I put this into a much larger project.  I would not recommend actually using the output of the ROS node for anything - there are _much_ better ways of doing GNSS positioning, but this should be a pretty good first-principles example.
 
