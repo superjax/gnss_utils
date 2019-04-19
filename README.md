@@ -20,7 +20,7 @@ There is a short LaTeX beamer presentation in the `doc` folder which contains a 
 
 ## TODO:
 GLONASS Support
-
+UBLOX M8T reading/parsing
 
 
 
