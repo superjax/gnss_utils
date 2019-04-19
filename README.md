@@ -6,7 +6,7 @@ This is a bunch of utilities for handling Raw GNSS Data, as well as an example R
 I made this so that I could feel confident that I was properly handling the data before I put this into a much larger project.  I would not recommend actually using the output of the ROS node for anything - there are _much_ better ways of doing GNSS positionin, but it's a good first-principles example.
 
 ## Building
-The main library depends only on Eigen.  If you don't want the test suite or the ROS node, you should be able to build the library alone (or add it as a subdirectory of a larger project).
+The main library depends only on Eigen.  If you don't want the test suite or the ROS node, you should be able to build the library alone (or add it as a subdirectory of a larger project).  Building is the typical cmake - make workflow, or you can just put this in the `src` directory of a catkin workspace.
 
 If catkin is detected, then the `point_positioning_demo` ROS node will be built.
 If gtest is detected, then the test suite will be built.
