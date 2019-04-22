@@ -4,6 +4,8 @@
 #include "gnss_utils/test_common.h"
 
 using namespace Eigen;
+using namespace gnss_utils;
+
 
 TEST (Gnss, lla2ecef)
 {

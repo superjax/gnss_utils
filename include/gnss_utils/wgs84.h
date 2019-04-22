@@ -5,6 +5,9 @@
 #include "gnss_utils/gtime.h"
 #include "gnss_utils/satellite.h"
 
+namespace gnss_utils
+{
+
 struct WGS84
 {
     typedef std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d>> VecVec3;
@@ -184,4 +187,4 @@ inline void printLla(const Eigen::Vector3d& lla)
     std::cout << lla(0)*180.0/M_PI << ", " << lla(1)*180.0/M_PI << ", " << lla(2);
 }
 
-
+}

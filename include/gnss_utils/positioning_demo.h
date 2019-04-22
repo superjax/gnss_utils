@@ -9,16 +9,16 @@
 #include <gnss_utils/SatInfo.h>
 
 
-#include "GNSS_utils/logger.h"
-#include "GNSS_utils/satellite.h"
-#include "GNSS_utils/gtime.h"
-#include "GNSS_utils/datetime.h"
+#include "gnss_utils/logger.h"
+#include "gnss_utils/satellite.h"
+#include "gnss_utils/gtime.h"
+#include "gnss_utils/datetime.h"
 
 class PP_Demo
 {
 public:
-    typedef std::vector<Obs, Eigen::aligned_allocator<Obs>> obsVec;
-    typedef std::vector<Satellite, Eigen::aligned_allocator<Satellite>> satVec;
+    typedef std::vector<gnss_utils::Obs, Eigen::aligned_allocator<gnss_utils::Obs>> obsVec;
+    typedef std::vector<gnss_utils::Satellite, Eigen::aligned_allocator<gnss_utils::Satellite>> satVec;
     typedef Eigen::Matrix<double, 8, 1> Vec8;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -32,7 +32,7 @@ public:
     void refreshSatIdx();
     int getSatIdx(int sat_id) const;
     void filterObs(const obsVec& rawObs);
-    void lsPositioning(const GTime &t, const obsVec &obs, satVec &sats, Vec8 &xhat);
+    void lsPositioning(const gnss_utils::GTime &t, const obsVec &obs, satVec &sats, Vec8 &xhat);
 
     satVec sats_;
     obsVec obs_;
@@ -46,15 +46,15 @@ public:
     ros::NodeHandle nh_, nh_private_;
 
     Eigen::Vector3d rec_pos_prev_;
-    GTime time_prev_;
+    gnss_utils::GTime time_prev_;
     double min_satellite_elevation_;
 
     Eigen::Vector3d ref_lla_, lla_;
     Eigen::Vector3d ref_vel_ecef_, vel_ned_;
     Logger log_;
-    GTime start_time_;
+    gnss_utils::GTime start_time_;
 
     int sat_to_track = -1;
     double prange_prev;
-    GTime t_prev;
+    gnss_utils::GTime t_prev;
 };

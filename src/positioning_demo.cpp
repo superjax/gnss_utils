@@ -1,7 +1,10 @@
 #include <ros/ros.h>
 
-#include "GNSS_utils/positioning_demo.h"
-#include "GNSS_utils/wgs84.h"
+#include "gnss_utils/positioning_demo.h"
+#include "gnss_utils/wgs84.h"
+
+using namespace gnss_utils;
+using namespace Eigen;
 
 PP_Demo::PP_Demo() :
     nh_(), nh_private_("~")
