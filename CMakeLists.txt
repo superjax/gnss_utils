@@ -2,39 +2,35 @@ cmake_minimum_required(VERSION 2.8.3)
 project(gnss_utils)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(Eigen3 REQUIRED)
-find_package(GTest)
 find_package(yaml-cpp REQUIRED)
-find_package(catkin COMPONENTS
-    roscpp
-    nav_msgs
-    geometry_msgs
-    sensor_msgs
-    inertial_sense)
+find_package(geometry REQUIRED)
 
-
-if (NOT TARGET geometry)
-    add_subdirectory(lib/geometry)
-endif()
-
+include_directories(gnss_utils
+    ${EIGEN3_INCLUDE_DIRS}
+    ${YAML_CPP_INCLUDE_DIR}
+    ${geometry_INCLUDE_DIRS}
+    include)
 add_library(gnss_utils
     src/gtime.cpp
     src/datetime.cpp
     src/satellite.cpp
     )
-target_include_directories(gnss_utils PUBLIC 
-    include
-    ${EIGEN3_INCLUDE_DIRS}
-    ${YAML_CPP_INCLUDE_DIR}
-    lib/geometry/include)
+# target_include_directories(gnss_utils PUBLIC 
+#     ${EIGEN3_INCLUDE_DIRS}
+#     ${YAML_CPP_INCLUDE_DIR}
+#     ${geometry_INCLUDE_DIRS}
+#     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>  
+#     $<INSTALL_INTERFACE:include/>)
 target_link_libraries(gnss_utils
     ${YAML_CPP_LIBRARIES}
-    stdc++fs
-    geometry)
+    stdc++fs)
 
-if (${GTEST_FOUND})
-    message(STATUS "Found Gtest, building gnss_utils tests")
+option(BUILD_TESTS "Build Tests" OFF)
+if (BUILD_TESTS)
+    find_package(GTest REQUIRED)
     add_definitions(-DGNSS_UTILS_DIR="${CMAKE_CURRENT_LIST_DIR}")
     add_executable(gnss_utils_test
         src/test/test_time.cpp
@@ -48,12 +44,20 @@ if (${GTEST_FOUND})
             pthread
             gnss_utils)
     target_include_directories(gnss_utils_test PUBLIC
-            include
-            ${GTEST_INCLUDE_DIRS})
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
+        $<INSTALL_INTERFACE:include/>
+        ${GTEST_INCLUDE_DIRS})
 endif()
 
-if (${catkin_FOUND})
-    message(STATUS "Found Catkin, building gnss_utils ROS demo")
+option(BUILD_ROS_EXAMPLE "Build ROS Example" OFF)
+if (BUILD_ROS_EXAMPLE)
+    find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    nav_msgs
+    geometry_msgs
+    sensor_msgs
+    inertial_sense)
+    message(STATUS "Building gnss_utils ROS demo")
     add_message_files(FILES SatInfo.msg)
     generate_messages(DEPENDENCIES std_msgs geometry_msgs inertial_sense)
     catkin_package(
@@ -62,12 +66,36 @@ if (${catkin_FOUND})
         LIBRARIES gnss_utils)
     add_executable(point_position_demo
         src/positioning_demo.cpp)
-    target_include_directories(point_position_demo PUBLIC
-        include
-        ${catkin_INCLUDE_DIRS})
+    # target_include_directories(point_position_demo PUBLIC
+    #     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
+    #     $<INSTALL_INTERFACE:include/>
+    #     ${catkin_INCLUDE_DIRS})
     target_link_libraries(point_position_demo gnss_utils ${catkin_LIBRARIES})
     add_dependencies(point_position_demo
         gnss_utils_generate_messages_cpp)
-    else()
-    message(STATUS "Disabling ROS Node Build")
+
+    # install package.xml for ROS release
+    install(FILES package.xml DESTINATION share/${PROJECT_NAME})
+else()
+    message(STATUS "Disabling ROS Example Node Build")
 endif()
+
+
+# install
+set(LIB_DEST lib/${PROJECT_NAME})
+set(INCLUDE_DEST include)
+
+install(TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}-targets
+  ARCHIVE DESTINATION ${LIB_DEST}
+  LIBRARY DESTINATION ${LIB_DEST}
+)
+install(DIRECTORY include/${PROJECT_NAME}
+  DESTINATION ${INCLUDE_DEST}
+  FILES_MATCHING PATTERN "*.h"
+)
+
+# install CMake package configuration
+install(EXPORT ${PROJECT_NAME}-targets DESTINATION ${LIB_DEST})
+install(FILES ${PROJECT_NAME}-config.cmake DESTINATION ${LIB_DEST})
+
