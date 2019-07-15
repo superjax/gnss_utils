@@ -6,7 +6,22 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(geometry REQUIRED)
+
+function(find_deps package url)
+    find_package(${package} QUIET)
+    if (${package}_FOUND)
+        message(STATUS found ${package})
+    else()
+        message(STATUS "did not find ${package}, cloning into local lib/ folder")
+        # Clone and create the proper variables
+        file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
+        execute_process(COMMAND git clone ${url} ${CMAKE_CURRENT_LIST_DIR}/lib/${package})
+        add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/${package})
+        set(${package}_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/lib/${package}/include)
+    endif()
+endfunction()
+
+find_deps(geometry https://github.com/superjax/geometry)
 
 include_directories(gnss_utils
     ${EIGEN3_INCLUDE_DIRS}
