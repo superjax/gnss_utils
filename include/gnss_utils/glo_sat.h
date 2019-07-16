@@ -66,15 +66,16 @@ public:
       const double re2 = GloSat::RE_GLO * GloSat::RE_GLO;
 
       double a = 1.5 * GloSat::J2_GLO * GloSat::MU_GLO * re2 / r5; //3/2*J2*mu*Ae^2/r^5
+      printf("a = %f\n", a);
       double b = 5.0 * p.z() * p.z() / r2;
-      double c = - GloSat::MU_GLO / r3 - a * (1.0 - b);
-      pdot = vdot;
+      printf("b = %f\n", b);
+      double c = -GloSat::MU_GLO / r3 - a * (1.0 - b);
+      printf("c = %f\n", c);
+      pdot = v;
       vdot.x() = (c + omg2)  * p.x() + 2.0*GloSat::OMGE_GLO * v.y() + acc.x();
-      vdot.y() = (c + omg2)  * p.y() + 2.0*GloSat::OMGE_GLO * v.x() + acc.y();
+      vdot.y() = (c + omg2)  * p.y() - 2.0*GloSat::OMGE_GLO * v.x() + acc.y();
       vdot.z() = (c - 2.0*a) * p.z() + acc.z();
-
-
-
+      return xdot;
     }
     geph_t geph_ = { 0 };
 };

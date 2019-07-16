@@ -14,14 +14,29 @@ const double GloSat::OMGE_GLO = 7.292115E-5;
 const double GloSat::MU_GLO = 3.9860044E14;
 const double GloSat::J2_GLO = 1.0826257E-3;
 const double GloSat::RE_GLO = 6378136.0;
+#define dbg(x) printf("%s:%d %s=%f\n",__FILE__,__LINE__,#x,x)
+#define vec(x,n) std::cout << __FILE__ << ":" << __LINE__ << " " << #x << " = " << x.transpose() << std::endl;
 
 static Eigen::VectorXd RK4(std::function<Eigen::VectorXd(const Eigen::VectorXd& x, const Eigen::VectorXd& u)> f,
                 double dt, const Eigen::VectorXd& x0, const Eigen::VectorXd& u)
 {
+  dbg(dt);
+  vec(u,3);
+  vec(x0,6);
   VectorXd k1 = f(x0, u);
-  VectorXd k2 = f(x0+k1*dt/2.0, u);
-  VectorXd k3 = f(x0+k2*dt/2.0, u);
-  VectorXd k4 = f(x0+k3*dt, u);
+  vec(k1,6);
+  VectorXd w = x0+k1*dt/2.0;
+  vec(w,6);
+  VectorXd k2 = f(w, u);
+  vec(k2,6);
+  w = x0+k2*dt/2.0;
+  vec(w,6);
+  VectorXd k3 = f(w, u);
+  vec(k3,6);
+  w = x0+k3*dt;
+  vec(w,6);
+  VectorXd k4 = f(w, u);
+  vec(k4, 6);
   return x0 + (k1 + 2.0*k2 + 2.0*k3 + k4) * (dt / 6.0);
 }
 
@@ -67,14 +82,12 @@ void GloSat::addEphemeris(const geph_t &_eph)
 }
 
 
-#define dbg(x) printf("%s:%d %s=%f\n",__FILE__,__LINE__,#x,x)
 void GloSat::update(const GTime &time)
 {
   if (time == t)
     return;
 
   double dt = selectEphemeris(time);
-  dbg(dt);
 
   // Clock biases
   clk(0) = -geph_.taun + geph_.gamn*dt;
@@ -91,9 +104,10 @@ void GloSat::update(const GTime &time)
   {
     if (std::abs(dt) < GloSat::TSTEP)
       timestep = dt;
-
     x = RK4(GloSat::orbit, timestep, x, Map<const Vector3d>(geph_.acc));
+    dbg(x[0]);
 
+    break;
     dt -= timestep;
   }
 

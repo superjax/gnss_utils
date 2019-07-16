@@ -108,4 +108,7 @@ double doppler(gnss_utils::GTime& t, gnss_utils::Satellite &sat,
                const Eigen::Vector3d& rec_pos, const Eigen::Vector3d& rec_vel);
 void geph2pos(gnss_utils::GTime time, const gnss_utils::geph_t *geph, Eigen::Vector3d& rs,
               double *dts, double *var);
+void glorbit(double t, double *x, const double *acc);
+void deq(const double *x, double *xdot, const double *acc);
+
 

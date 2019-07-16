@@ -431,6 +431,8 @@ void computeRange(range_t *rho, Satellite& eph, ionoutc_t *ionoutc, GTime g, Vec
 
     return;
 }
+#define dbg(x) printf("%s:%d %s=%f\n",__FILE__,__LINE__,#x,x)
+
 
 /* glonass orbit differential equations --------------------------------------*/
 void deq(const double *x, double *xdot, const double *acc)
@@ -443,26 +445,44 @@ void deq(const double *x, double *xdot, const double *acc)
     }
     /* ref [2] A.3.1.2 with bug fix for xdot[4],xdot[5] */
     a=1.5*GloSat::J2_GLO*GloSat::MU_GLO*SQR(GloSat::RE_GLO)/r2/r3; /* 3/2*J2*mu*Ae^2/r^5 */
+    dbg(a);
     b=5.0*x[2]*x[2]/r2;                    /* 5*z^2/r^2 */
+    dbg(b);
     c=-GloSat::MU_GLO/r3-a*(1.0-b);                /* -mu/r^3-a(1-b) */
+    dbg(c);
     xdot[0]=x[3]; xdot[1]=x[4]; xdot[2]=x[5];
     xdot[3]=(c+omg2)*x[0]+2.0*GloSat::OMGE_GLO*x[4]+acc[0];
     xdot[4]=(c+omg2)*x[1]-2.0*GloSat::OMGE_GLO*x[3]+acc[1];
     xdot[5]=(c-2.0*a)*x[2]+acc[2];
 }
 
+#define vec(x, n) \
+do {\
+  Map<const Matrix<double, 1, n>> tmp(x);\
+  std::cout << __FILE__ << ":" << __LINE__ << " " << #x << " " << tmp << std::endl;\
+} while (0)
 void glorbit(double t, double *x, const double *acc)
 {
     double k1[6],k2[6],k3[6],k4[6],w[6];
     int i;
 
+    dbg(t);
+    vec(acc, 3);
+    vec(x,6);
     deq(x,k1,acc); for (i=0;i<6;i++) w[i]=x[i]+k1[i]*t/2.0;
+    vec(k1,6);
+    vec(w,6);
     deq(w,k2,acc); for (i=0;i<6;i++) w[i]=x[i]+k2[i]*t/2.0;
+    vec(k2,6);
+    vec(w,6);
     deq(w,k3,acc); for (i=0;i<6;i++) w[i]=x[i]+k3[i]*t;
+    vec(k3,6);
+    vec(w,6);
     deq(w,k4,acc);
+    vec(k4,6);
     for (i=0;i<6;i++) x[i]+=(k1[i]+2.0*k2[i]+2.0*k3[i]+k4[i])*t/6.0;
 }
-#define dbg(x) printf("%s:%d %s=%f\n",__FILE__,__LINE__,#x,x)
+
 /* glonass ephemeris to satellite position and clock bias ----------------------
 * compute satellite position and clock bias with glonass ephemeris
 * args   : gtime_t time     I   time (gpst)
@@ -481,7 +501,6 @@ void geph2pos(GTime time, const geph_t *geph, Vector3d& rs, double *dts, double 
 //    trace(4,"geph2pos: time=%s sat=%2d\n",time_str(time,3),geph->sat);
 
     t=(time - geph->toe).toSec();
-    dbg(t);
     *dts=-geph->taun+geph->gamn*t;
 
     for (i=0;i<3;i++) {
@@ -491,6 +510,8 @@ void geph2pos(GTime time, const geph_t *geph, Vector3d& rs, double *dts, double 
     for (tt=t<0.0?-GloSat::TSTEP:GloSat::TSTEP; fabs(t)>1E-9; t-=tt) {
         if (fabs(t)<GloSat::TSTEP) tt=t;
         glorbit(tt,x,geph->acc);
+        dbg(x[0]);
+        break;
     }
     for (i=0;i<3;i++) rs[i]=x[i];
 
