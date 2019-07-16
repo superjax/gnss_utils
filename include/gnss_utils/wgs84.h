@@ -161,10 +161,10 @@ struct WGS84
         {
           Eigen::Vector3d sat_pos, sat_vel;
           Eigen::Vector2d sat_clk_bias;
-          sat.computePositionVelocityClock(t, sat_pos, sat_vel, sat_clk_bias);
+          sat.computePVT(t, sat_pos, sat_vel, sat_clk_bias);
 
           Eigen::Vector3d zhat ;
-          sat.computeMeasurement(t, xhat, Eigen::Vector3d::Zero(), Eigen::Vector2d::Zero(), zhat);
+          sat.computeMeas(t, xhat, Eigen::Vector3d::Zero(), Eigen::Vector2d::Zero(), zhat);
           b(i) = z[i](0) - zhat(0);
 
           A.block<1,3>(i,0) = (xhat - sat_pos).normalized().transpose();

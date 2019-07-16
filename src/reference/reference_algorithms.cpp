@@ -1,6 +1,7 @@
 ﻿#include <Eigen/Core>
 
-#include "gnss_utils/satellite.h"
+#include "gnss_utils/gps_sat.h"
+#include "gnss_utils/glo_sat.h"
 #include "gnss_utils/gtime.h"
 #include "gnss_utils/datetime.h"
 #include "gnss_utils/test_common.h"
@@ -10,8 +11,6 @@ using namespace Eigen;
 using namespace gnss_utils;
 
 #define SQR(x) (x*x)
-
-#define dbg(x) std::cout << #x": " << x << std::endl;
 
 void eph2pos(const GTime& t, const eph_t* eph, Vector3d& pos, double* dts)
 {
@@ -382,7 +381,7 @@ void computeRange(range_t *rho, Satellite& eph, ionoutc_t *ionoutc, GTime g, Vec
 
     // SV position at time of the pseudorange observation.
 //    satpos(eph, g, pos, vel, clk);
-    eph.computePositionVelocityClock(g, pos, vel, clk);
+    eph.computePVT(g, pos, vel, clk);
 
 
     // Receiver to satellite vector and light-time.
@@ -420,7 +419,7 @@ void computeRange(range_t *rho, Satellite& eph, ionoutc_t *ionoutc, GTime g, Vec
 
     // Azimuth and elevation angles.
     Vector2d az_el;
-    eph.los2azimuthElevation(xyz, los, az_el);
+    eph.los2AzEl(xyz, los, az_el);
     rho->azel[0] = az_el[0];
     rho->azel[1] = az_el[1];
     lla = WGS84::ecef2lla(xyz);
@@ -431,4 +430,69 @@ void computeRange(range_t *rho, Satellite& eph, ionoutc_t *ionoutc, GTime g, Vec
 
 
     return;
+}
+
+/* glonass orbit differential equations --------------------------------------*/
+void deq(const double *x, double *xdot, const double *acc)
+{
+    double a,b,c,r2=dot(x,x,3),r3=r2*sqrt(r2),omg2=SQR(GloSat::OMGE_GLO);
+
+    if (r2<=0.0) {
+        xdot[0]=xdot[1]=xdot[2]=xdot[3]=xdot[4]=xdot[5]=0.0;
+        return;
+    }
+    /* ref [2] A.3.1.2 with bug fix for xdot[4],xdot[5] */
+    a=1.5*GloSat::J2_GLO*GloSat::MU_GLO*SQR(GloSat::RE_GLO)/r2/r3; /* 3/2*J2*mu*Ae^2/r^5 */
+    b=5.0*x[2]*x[2]/r2;                    /* 5*z^2/r^2 */
+    c=-GloSat::MU_GLO/r3-a*(1.0-b);                /* -mu/r^3-a(1-b) */
+    xdot[0]=x[3]; xdot[1]=x[4]; xdot[2]=x[5];
+    xdot[3]=(c+omg2)*x[0]+2.0*GloSat::OMGE_GLO*x[4]+acc[0];
+    xdot[4]=(c+omg2)*x[1]-2.0*GloSat::OMGE_GLO*x[3]+acc[1];
+    xdot[5]=(c-2.0*a)*x[2]+acc[2];
+}
+
+void glorbit(double t, double *x, const double *acc)
+{
+    double k1[6],k2[6],k3[6],k4[6],w[6];
+    int i;
+
+    deq(x,k1,acc); for (i=0;i<6;i++) w[i]=x[i]+k1[i]*t/2.0;
+    deq(w,k2,acc); for (i=0;i<6;i++) w[i]=x[i]+k2[i]*t/2.0;
+    deq(w,k3,acc); for (i=0;i<6;i++) w[i]=x[i]+k3[i]*t;
+    deq(w,k4,acc);
+    for (i=0;i<6;i++) x[i]+=(k1[i]+2.0*k2[i]+2.0*k3[i]+k4[i])*t/6.0;
+}
+#define dbg(x) printf("%s:%d %s=%f\n",__FILE__,__LINE__,#x,x)
+/* glonass ephemeris to satellite position and clock bias ----------------------
+* compute satellite position and clock bias with glonass ephemeris
+* args   : gtime_t time     I   time (gpst)
+*          geph_t *geph     I   glonass ephemeris
+*          double *rs       O   satellite position {x,y,z} (ecef) (m)
+*          double *dts      O   satellite clock bias (s)
+*          double *var      O   satellite position and clock variance (m^2)
+* return : none
+* notes  : see ref [2]
+*-----------------------------------------------------------------------------*/
+void geph2pos(GTime time, const geph_t *geph, Vector3d& rs, double *dts, double *var)
+{
+    double t,tt,x[6];
+    int i;
+
+//    trace(4,"geph2pos: time=%s sat=%2d\n",time_str(time,3),geph->sat);
+
+    t=(time - geph->toe).toSec();
+    dbg(t);
+    *dts=-geph->taun+geph->gamn*t;
+
+    for (i=0;i<3;i++) {
+        x[i  ]=geph->pos[i];
+        x[i+3]=geph->vel[i];
+    }
+    for (tt=t<0.0?-GloSat::TSTEP:GloSat::TSTEP; fabs(t)>1E-9; t-=tt) {
+        if (fabs(t)<GloSat::TSTEP) tt=t;
+        glorbit(tt,x,geph->acc);
+    }
+    for (i=0;i<3;i++) rs[i]=x[i];
+
+    *var=SQR(GloSat::ERREPH_GLO);
 }

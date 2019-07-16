@@ -4,13 +4,16 @@
 
 #include <inertial_sense/GNSSObsVec.h>
 #include <inertial_sense/GNSSEphemeris.h>
+#include <inertial_sense/GlonassEphemeris.h>
 #include <inertial_sense/GPS.h>
 #include <geometry_msgs/Vector3.h>
 #include <gnss_utils/SatInfo.h>
 
 
 #include "gnss_utils/logger.h"
-#include "gnss_utils/satellite.h"
+#include "gnss_utils/gps_sat.h"
+#include "gnss_utils/glo_sat.h"
+#include "gnss_utils/obs.h"
 #include "gnss_utils/gtime.h"
 #include "gnss_utils/datetime.h"
 
@@ -18,13 +21,15 @@ class PP_Demo
 {
 public:
     typedef std::vector<gnss_utils::Obs, Eigen::aligned_allocator<gnss_utils::Obs>> obsVec;
-    typedef std::vector<gnss_utils::Satellite, Eigen::aligned_allocator<gnss_utils::Satellite>> satVec;
+    typedef std::vector<gnss_utils::GPSSat, Eigen::aligned_allocator<gnss_utils::GPSSat>> satVec;
     typedef Eigen::Matrix<double, 8, 1> Vec8;
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     PP_Demo();
+    ~PP_Demo();
     void obsVecCB(const inertial_sense::GNSSObsVecConstPtr& msg);
     void ephCB(const inertial_sense::GNSSEphemerisConstPtr &eph);
+    void gephCB(const inertial_sense::GlonassEphemerisConstPtr& geph);
     void gpsCB(const inertial_sense::GPSConstPtr& gps);
 
     void calcPosition();
@@ -37,8 +42,11 @@ public:
     satVec sats_;
     obsVec obs_;
 
+    std::ofstream out_;
+
     ros::Subscriber obs_sub_;
     ros::Subscriber eph_sub_;
+    ros::Subscriber geph_sub_;
     ros::Subscriber gps_sub_;
     std::vector<ros::Publisher> sat_pos_pub_;
     ros::Publisher lla_pub_;

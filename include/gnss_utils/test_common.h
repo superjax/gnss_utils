@@ -4,6 +4,8 @@
 #include <Eigen/Core>
 
 #include "gnss_utils/satellite.h"
+#include "gnss_utils/gps_sat.h"
+#include "gnss_utils/glo_sat.h"
 #include "gnss_utils/gtime.h"
 #include "gnss_utils/datetime.h"
 
@@ -104,4 +106,6 @@ void computeRange(range_t *rho, gnss_utils::Satellite &eph, ionoutc_t *ionoutc,
                   gnss_utils::GTime g, Eigen::Vector3d& xyz, Eigen::Vector3d &dxyz);
 double doppler(gnss_utils::GTime& t, gnss_utils::Satellite &sat,
                const Eigen::Vector3d& rec_pos, const Eigen::Vector3d& rec_vel);
+void geph2pos(gnss_utils::GTime time, const gnss_utils::geph_t *geph, Eigen::Vector3d& rs,
+              double *dts, double *var);
 

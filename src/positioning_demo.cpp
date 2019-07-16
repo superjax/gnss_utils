@@ -11,6 +11,7 @@ PP_Demo::PP_Demo() :
 {
     obs_sub_ = nh_.subscribe("gps/obs", 1, &PP_Demo::obsVecCB, this);
     eph_sub_ = nh_.subscribe("gps/eph", 1, &PP_Demo::ephCB, this);
+    geph_sub_ = nh_.subscribe("gps/geph", 1, &PP_Demo::gephCB, this);
     gps_sub_ = nh_.subscribe("gps", 1, &PP_Demo::gpsCB, this);
 
     lla_pub_ = nh_.advertise<geometry_msgs::Vector3>("lla", 1);
@@ -25,6 +26,13 @@ PP_Demo::PP_Demo() :
     time_prev_.week = 0;
     start_time_.tow_sec = 0;
     start_time_.week = 0;
+
+    out_.open("/home/superjax/geph.dat");
+}
+
+PP_Demo::~PP_Demo()
+{
+  out_.close();
 }
 
 void PP_Demo::gpsCB(const inertial_sense::GPSConstPtr &gps)
@@ -51,7 +59,7 @@ void PP_Demo::obsVecCB(const inertial_sense::GNSSObsVecConstPtr &msg)
         new_o.SNR = o.SNR;
         new_o.LLI = o.LLI;
         new_o.code = o.code;
-        new_o.z << o.P, -Satellite::LAMBDA_L1*o.D, o.L;
+        new_o.z << o.P, -GPSSat::LAMBDA_L1*o.D, o.L;
         new_obs.push_back(new_o);
     }
     filterObs(new_obs);
@@ -128,10 +136,10 @@ void PP_Demo::ephCB(const inertial_sense::GNSSEphemerisConstPtr &eph)
     bool new_sat = (s == sats_.end());
 
     // Is this satellite high enough in the sky to care about?
-    Satellite sat(new_eph, sats_.size());
+    GPSSat sat(new_eph, sats_.size());
     bool high_enough = true;
     if (rec_pos_prev_.x() > 0)
-        high_enough = sat.azimuthElevation(time_prev_, rec_pos_prev_)(1) > min_satellite_elevation_;
+        high_enough = sat.azEl(time_prev_, rec_pos_prev_)(1) > min_satellite_elevation_;
 
     if (new_sat)
     {
@@ -146,6 +154,33 @@ void PP_Demo::ephCB(const inertial_sense::GNSSEphemerisConstPtr &eph)
             sats_.erase(s);
     }
     refreshSatIdx();
+}
+
+void PP_Demo::gephCB(const inertial_sense::GlonassEphemerisConstPtr &geph)
+{
+  geph_t new_geph;
+  new_geph.sat = geph->sat;
+  new_geph.iode = geph->iode;
+  new_geph.frq = geph->frq;
+  new_geph.svh = geph->svh;
+  new_geph.sva = geph->sva;
+  new_geph.age = geph->age;
+  new_geph.toe = GTime::fromTime(geph->toe.time, geph->toe.sec);
+  new_geph.tof = GTime::fromTime(geph->tof.time, geph->tof.sec);
+  new_geph.pos[0] = geph->pos[0];
+  new_geph.pos[1] = geph->pos[1];
+  new_geph.pos[2] = geph->pos[2];
+  new_geph.vel[0] = geph->vel[0];
+  new_geph.vel[1] = geph->vel[1];
+  new_geph.vel[2] = geph->vel[2];
+  new_geph.acc[0] = geph->acc[0];
+  new_geph.acc[1] = geph->acc[1];
+  new_geph.acc[2] = geph->acc[2];
+  new_geph.taun = geph->taun;
+  new_geph.gamn = geph->gamn;
+  new_geph.dtaun = geph->dtaun;
+
+  out_.write((char*)&new_geph, sizeof(new_geph));
 }
 
 void PP_Demo::refreshSatIdx()
@@ -251,10 +286,10 @@ void PP_Demo::lsPositioning(const GTime &t, const obsVec &obs, satVec &sats, Vec
             auto vhat = xhat.segment<3>(3);
             auto that = xhat.segment<2>(6);
             GTime tnew = t + that(0);
-            sat.computePositionVelocityClock(tnew, sat_pos, sat_vel, sat_clk_bias);
+            sat.computePVT(tnew, sat_pos, sat_vel, sat_clk_bias);
 
             Vector3d zhat ;
-            sat.computeMeasurement(tnew, phat, vhat, that, zhat);
+            sat.computeMeas(tnew, phat, vhat, that, zhat);
             b(2*i) = o.z(0) - zhat(0);
             b(2*i + 1) = o.z(1) - zhat(1);
 

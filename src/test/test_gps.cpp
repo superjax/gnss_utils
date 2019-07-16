@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "gnss_utils/satellite.h"
+#include "gnss_utils/gps_sat.h"
 #include "gnss_utils/test_common.h"
 #include "gnss_utils/wgs84.h"
 #include "gnss_utils/datetime.h"
@@ -9,10 +9,10 @@ using namespace Eigen;
 using namespace gnss_utils;
 
 
-class TestSatellite : public ::testing::Test
+class TestGPSSat : public ::testing::Test
 {
 protected:
-  TestSatellite() :
+  TestGPSSat() :
     sat(1, 0)
   {}
   void SetUp() override
@@ -45,14 +45,13 @@ protected:
       eph.f1 = 0.0;
       eph.f2 = 0.0;
       sat.addEphemeris(eph);
-
   }
   eph_t eph;
   GTime time;
-  Satellite sat;
+  GPSSat sat;
 };
 
-TEST_F (TestSatellite, CheckSatPositionVelocityClock)
+TEST_F (TestGPSSat, CheckSatPositionVelocityClock)
 {
     Vector3d oracle_pos, oracle_vel, oracle_pos2;
     Vector3d new_pos, new_vel;
@@ -61,18 +60,18 @@ TEST_F (TestSatellite, CheckSatPositionVelocityClock)
     double dt = 1e-3;
     GTime t2 = time + dt;
     truth_pos << -12611434.19782218519,
-            -13413103.97797041226,
-            19062913.07357876760;
+                 -13413103.97797041226,
+                  19062913.07357876760;
     truth_vel <<  266.280379332602,
-            -2424.768347293139,
-            -1529.762077704072;
+                 -2424.768347293139,
+                 -1529.762077704072;
     eph2pos(time, &eph, oracle_pos, &oracle_clock);
     eph2pos(t2, &eph, oracle_pos2, &oracle_clock2);
     oracle_vel = (oracle_pos2 - oracle_pos) / dt;
     oracle_clk_rate = (oracle_clock2 - oracle_clock) / dt;
 
     Vector2d clock;
-    sat.computePositionVelocityClock(time, new_pos, new_vel, clock);
+    sat.computePVT(time, new_pos, new_vel, clock);
 
     EXPECT_MAT_NEAR(oracle_pos, new_pos, 1e-5);
     EXPECT_MAT_NEAR(oracle_vel, new_vel, 1e-3);
@@ -83,11 +82,11 @@ TEST_F (TestSatellite, CheckSatPositionVelocityClock)
     EXPECT_NEAR(clock(1), oracle_clk_rate, 1e-12);
 }
 
-TEST_F (TestSatellite, AzimuthElevationStraightUp)
+TEST_F (TestGPSSat, AzimuthElevationStraightUp)
 {
     Vector2d az_el, clock;
     Vector3d sat_pos, sat_vel;
-    sat.computePositionVelocityClock(time, sat_pos, sat_vel, clock);
+    sat.computePVT(time, sat_pos, sat_vel, clock);
     Vector3d sat_lla = WGS84::ecef2lla(sat_pos);
     Vector3d surface_lla = sat_lla;
     surface_lla(2) = 0;
@@ -95,16 +94,16 @@ TEST_F (TestSatellite, AzimuthElevationStraightUp)
 
     Vector3d los_ecef = sat_pos - surface_ecef;
 
-    sat.los2azimuthElevation(surface_ecef, los_ecef, az_el);
+    sat.los2AzEl(surface_ecef, los_ecef, az_el);
 
     ASSERT_NEAR(az_el(1), M_PI/2.0, 1e-7);
 }
 
-TEST_F (TestSatellite, AzimuthElevationProvo)
+TEST_F (TestGPSSat, AzimuthElevationProvo)
 {
     Vector2d az_el, clock;
     Vector3d sat_pos, sat_vel;
-    sat.computePositionVelocityClock(time, sat_pos, sat_vel, clock);
+    sat.computePVT(time, sat_pos, sat_vel, clock);
     Vector3d sat_lla = WGS84::ecef2lla(sat_pos);
 
     Vector3d provo_lla{40.246184 * DEG2RAD , -111.647769 * DEG2RAD, 1387.997511};
@@ -112,24 +111,24 @@ TEST_F (TestSatellite, AzimuthElevationProvo)
 
     Vector3d los_ecef = sat_pos - provo_ecef;
 
-    sat.los2azimuthElevation(provo_ecef, los_ecef, az_el);
+    sat.los2AzEl(provo_ecef, los_ecef, az_el);
 
     ASSERT_NEAR(az_el(0), -1.09260980, 1e-8);
     ASSERT_NEAR(az_el(1), 1.18916781, 1e-8);
 }
 
-TEST_F (TestSatellite, IonoshereCalculation)
+TEST_F (TestGPSSat, IonoshereCalculation)
 {
     Vector2d az_el, clock;
     Vector3d sat_pos, sat_vel;
-    sat.computePositionVelocityClock(time, sat_pos, sat_vel, clock);
+    sat.computePVT(time, sat_pos, sat_vel, clock);
     Vector3d provo_lla{40.246184 * DEG2RAD , -111.647769 * DEG2RAD, 1387.997511};
     Vector3d provo_ecef = WGS84::lla2ecef(provo_lla);
     Vector3d los_ecef = sat_pos - provo_ecef;
-    sat.los2azimuthElevation(provo_ecef, los_ecef, az_el);
+    sat.los2AzEl(provo_ecef, los_ecef, az_el);
 
     double oracle_ion_delay = ionmodel(time, provo_lla.data(), az_el.data());
-    double new_ion_delay = sat.ionosphericDelay(time, provo_lla, az_el);
+    double new_ion_delay = sat.ionDelay(time, provo_lla, az_el);
 
     ionoutc_t ion = {true, true,
                      0.1118E-07,-0.7451E-08,-0.5961E-07, 0.1192E-06,
@@ -140,7 +139,7 @@ TEST_F (TestSatellite, IonoshereCalculation)
     ASSERT_NEAR(sdr_lib_delay, new_ion_delay, 1e-8);
 }
 
-TEST_F (TestSatellite, PsuedorangeSim)
+TEST_F (TestGPSSat, PsuedorangeSim)
 {
     Vector3d provo_lla{40.246184 * DEG2RAD , -111.647769 * DEG2RAD, 1387.997511};
     Vector3d provo_ecef = WGS84::lla2ecef(provo_lla);
@@ -149,7 +148,7 @@ TEST_F (TestSatellite, PsuedorangeSim)
 
     Vector3d z;
 
-    sat.computeMeasurement(time, provo_ecef, rec_vel, Vector2d::Zero(), z);
+    sat.computeMeas(time, provo_ecef, rec_vel, Vector2d::Zero(), z);
 
     ionoutc_t ion = {true, true,
                      0.1118E-07,-0.7451E-08,-0.5961E-07, 0.1192E-06,
@@ -163,24 +162,24 @@ TEST_F (TestSatellite, PsuedorangeSim)
 //    EXPECT_NEAR(rho.rate, rtklib_rate, 1e-4);
 }
 
-TEST (Satellite, ReadFromFile)
+TEST (GPSSat, ReadFromFile)
 {
   std::vector<int> sat_ids = {3, 8, 10, 11, 14, 18, 22, 31, 32, 61, 62, 64, 67, 83, 84};
   std::vector<int> eph_counts = {4, 4, 14, 9, 14, 14, 5, 14, 14, 21, 39, 39, 24, 18, 39};
-  std::vector<Satellite> satellites;
+  std::vector<GPSSat> GPSSats;
   for (int i = 0; i < sat_ids.size(); i++)
   {
-    Satellite sat(sat_ids[i], i);
+    GPSSat sat(sat_ids[i], i);
     sat.readFromRawFile(GNSS_UTILS_DIR"/sample/eph.dat");
 
 //    EXPECT_GT(sat.eph_.size(), 0);
   }
 }
 
-TEST (Satellite, ReadFromFileCheckTime)
+TEST (GPSSat, ReadFromFileCheckTime)
 {
   std::vector<int> sat_ids = {3, 8, 10, 11, 14, 18, 22, 31, 32, 61, 62, 64, 67, 83, 84};
-  std::vector<Satellite> satellites;
+  std::vector<GPSSat> GPSSats;
 
   DateTime log_time;
   log_time.year = 2018;
@@ -193,13 +192,13 @@ TEST (Satellite, ReadFromFileCheckTime)
 
   for (int i = 0; i < sat_ids.size(); i++)
   {
-    Satellite sat(sat_ids[i], i);
+    GPSSat sat(sat_ids[i], i);
     sat.readFromRawFile(GNSS_UTILS_DIR"/sample/eph.dat");
-    EXPECT_LE(std::abs((log_start - sat.eph_.toe).toSec()), Satellite::MAXDTOE);
+    EXPECT_LE(std::abs((log_start - sat.eph_.toe).toSec()), GPSSat::MAXDTOE);
   }
 }
 
-TEST (Satellite, ReadFromFileCheckPositions)
+TEST (GPSSat, ReadFromFileCheckPositions)
 {
   std::vector<int> sat_ids = {3, 8, 10, 11, 14, 18, 22, 31, 32};
 
@@ -208,14 +207,14 @@ TEST (Satellite, ReadFromFileCheckPositions)
 
   for (int i = 1; i < sat_ids.size(); i++)
   {
-    Satellite sat(sat_ids[i], i);
+    GPSSat sat(sat_ids[i], i);
     sat.readFromRawFile(GNSS_UTILS_DIR"/sample/eph.dat");
 
     Vector3d pos, vel;
     Vector3d oracle_pos, oracle_pos_p, oracle_pos_m;
     double oracle_clock, oracle_clock_p, oracle_clock_m;
     Vector2d clock;
-    sat.computePositionVelocityClock(log_start, pos, vel, clock);
+    sat.computePVT(log_start, pos, vel, clock);
     eph2pos(log_start, &sat.eph_, oracle_pos, &oracle_clock);
 
     // numerically differentiate for velocity
@@ -234,7 +233,7 @@ TEST (Satellite, ReadFromFileCheckPositions)
   }
 }
 
-TEST (Satellite, ReadFromFileCheckAzEl)
+TEST (GPSSat, ReadFromFileCheckAzEl)
 {
   std::vector<int> sat_ids     = {3, 8, 10, 11, 14, 18, 22, 31, 32};
   // Truth Data gathered from https://in-the-sky.org/satmap_radar.php?year=2018&month=11&day=5
@@ -242,7 +241,7 @@ TEST (Satellite, ReadFromFileCheckAzEl)
   std::vector<double> sat_dist = {25051000, 25277000, 22050000, 22132000, 20560000, 20874000, 23237000, 21193000, 20854000};
   std::vector<double> sat_az   = {-62, -122, 104, -81, -14, -89, -58, 166, 40};
   std::vector<double> sat_el   = {6, 5, 38, 33, 78, 54, 26, 48, 60};
-  std::vector<Satellite> satellites;
+  std::vector<GPSSat> GPSSats;
 
   GTime log_start = GTime::fromUTC(1541454646,  0.993);
 
@@ -250,35 +249,35 @@ TEST (Satellite, ReadFromFileCheckAzEl)
 
   for (int i = 0; i < sat_ids.size(); i++)
   {
-    Satellite sat(sat_ids[i], i);
+    GPSSat sat(sat_ids[i], i);
     sat.readFromRawFile(GNSS_UTILS_DIR"/sample/eph.dat");
 
     Vector3d pos, vel;
     Vector2d clock, az_el;
-    sat.computePositionVelocityClock(log_start, pos, vel, clock);
+    sat.computePVT(log_start, pos, vel, clock);
     Vector3d los_ecef = pos - rec_pos;
-    sat.los2azimuthElevation(rec_pos, los_ecef, az_el);
+    sat.los2AzEl(rec_pos, los_ecef, az_el);
     EXPECT_NEAR((pos-rec_pos).norm(), sat_dist[i], 10000);
     EXPECT_NEAR(az_el(0)*RAD2DEG, sat_az[i], 1);
     EXPECT_NEAR(az_el(1)*RAD2DEG, sat_el[i], 1);
   }
 }
 
-TEST (Satellite, CheckMagnitudeOfCarrierPhase)
+TEST (GPSSat, CheckMagnitudeOfCarrierPhase)
 {
-  Satellite sat(3, 0);
+  GPSSat sat(3, 0);
   sat.readFromRawFile(GNSS_UTILS_DIR"/sample/eph.dat");
   GTime log_start = GTime::fromUTC(1541454646,  0.993);
   Vector3d rec_pos {-1798904.13, -4532227.1 ,  4099781.95};
   Vector3d z;
-  sat.computeMeasurement(log_start, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z);
+  sat.computeMeas(log_start, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z);
 
   EXPECT_NEAR(z(2), 1.3e8, 1e7);
 }
 
-TEST (Satellite, CheckRepeatedCalls)
+TEST (GPSSat, CheckRepeatedCalls)
 {
-    Satellite sat(3, 0);
+    GPSSat sat(3, 0);
     sat.readFromRawFile(GNSS_UTILS_DIR"/sample/eph.dat");
     GTime log_start = GTime::fromUTC(1541454646,  0.993);
     Vector3d rec_pos {-1798904.13, -4532227.1 ,  4099781.95};
@@ -286,12 +285,12 @@ TEST (Satellite, CheckRepeatedCalls)
     Vector3d z21, z22, z23;
     GTime t1 = log_start + 30;
     GTime t2 = log_start + 60;
-    sat.computeMeasurement(t1, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z11);
-    sat.computeMeasurement(t1, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z12);
-    sat.computeMeasurement(t2, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z21);
-    sat.computeMeasurement(t2, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z22);
-    sat.computeMeasurement(t1, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z13);
-    sat.computeMeasurement(t2, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z23);
+    sat.computeMeas(t1, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z11);
+    sat.computeMeas(t1, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z12);
+    sat.computeMeas(t2, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z21);
+    sat.computeMeas(t2, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z22);
+    sat.computeMeas(t1, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z13);
+    sat.computeMeas(t2, rec_pos, Vector3d::Zero(), Vector2d::Zero(), z23);
 
     EXPECT_MAT_EQ(z11, z12);
     EXPECT_MAT_EQ(z11, z13);

@@ -17,6 +17,9 @@ add_library(gnss_utils
     src/gtime.cpp
     src/datetime.cpp
     src/satellite.cpp
+    src/glo_sat.cpp
+    src/gps_sat.cpp
+    src/obs.cpp
     )
 # target_include_directories(gnss_utils PUBLIC 
 #     ${EIGEN3_INCLUDE_DIRS}
@@ -35,7 +38,8 @@ if (BUILD_TESTS)
     add_executable(gnss_utils_test
         src/test/test_time.cpp
         src/test/test_wgs84.cpp
-        src/test/test_satellite.cpp
+        src/test/test_gps.cpp
+        src/test/test_glonass.cpp
         src/reference/reference_algorithms.cpp)
     target_link_libraries(gnss_utils_test
             ${GTEST_LIBRARIES}
@@ -70,6 +74,7 @@ if (BUILD_ROS_EXAMPLE)
     #     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>  
     #     $<INSTALL_INTERFACE:include/>
     #     ${catkin_INCLUDE_DIRS})
+    target_include_directories(point_position_demo PUBLIC include ${catkin_INCLUDE_DIRS})
     target_link_libraries(point_position_demo gnss_utils ${catkin_LIBRARIES})
     add_dependencies(point_position_demo
         gnss_utils_generate_messages_cpp)
