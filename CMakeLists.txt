@@ -10,14 +10,33 @@ find_package(yaml-cpp REQUIRED)
 function(find_deps package url)
     find_package(${package} QUIET)
     if (${package}_FOUND)
-        message(STATUS found ${package})
+        message(STATUS "${PROJECT_NAME} found package ${package}")
+    elseif(TARGET ${package})
+        if(EXISTS ${CMAKE_SOURCE_DIR}/lib/${package})
+            message(STATUS 
+                "${PROJECT_NAME} found ${package} in ${CMAKE_SOURCE_DIR}/lib/")
+            set(${package}_INCLUDE_DIRS
+                ${CMAKE_SOURCE_DIR}/lib/${package}/include PARENT_SCOPE)
+        else()
+            message(STATUS 
+                "${PROJECT_NAME} could not find existing ${package} TARGET")
+        endif()
+    elseif(EXISTS ${CMAKE_CURRENT_LIST_DIR}/lib/${package})
+        message(STATUS 
+            "${PROJECT_NAME} found ${package} in ${PROJECT_NAME}/lib/")
+        add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/${package})
+        set(${package}_INCLUDE_DIRS 
+            ${CMAKE_CURRENT_LIST_DIR}/lib/${package}/include PARENT_SCOPE)
     else()
-        message(STATUS "did not find ${package}, cloning into local lib/ folder")
+        message(STATUS "${PROJECT_NAME} did not find ${package}")
+        message(STATUS "cloning ${package} into local ${PROJECT_NAME}/lib/")
         # Clone and create the proper variables
         file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
-        execute_process(COMMAND git clone ${url} ${CMAKE_CURRENT_LIST_DIR}/lib/${package})
+        execute_process(COMMAND 
+            git clone ${url} ${CMAKE_CURRENT_LIST_DIR}/lib/${package})
         add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/${package})
-        set(${package}_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/lib/${package}/include)
+        set(${package}_INCLUDE_DIRS 
+            ${CMAKE_CURRENT_LIST_DIR}/lib/${package}/include PARENT_SCOPE)
     endif()
 endfunction()
 
