@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(gnss_utils)
 
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -12,11 +13,20 @@ function(find_deps package url)
     if (${package}_FOUND)
         message(STATUS "${PROJECT_NAME} found package ${package}")
     elseif(TARGET ${package})
+        string(LENGTH ${CMAKE_CURRENT_SOURCE_DIR} cur_src_len)
+        string(LENGTH "/lib/${PROJECT_NAME}" proj_len)
+        math(EXPR substr_len "${cur_src_len} - ${proj_len}")
+        string(SUBSTRING ${CMAKE_CURRENT_SOURCE_DIR} 0 ${substr_len} PARENT_DIR)
         if(EXISTS ${CMAKE_SOURCE_DIR}/lib/${package})
             message(STATUS 
                 "${PROJECT_NAME} found ${package} in ${CMAKE_SOURCE_DIR}/lib/")
             set(${package}_INCLUDE_DIRS
                 ${CMAKE_SOURCE_DIR}/lib/${package}/include PARENT_SCOPE)
+        elseif(EXISTS ${PARENT_DIR}/lib/${package})
+            message(STATUS 
+                "${PROJECT_NAME} found ${package} in ${PARENT_DIR}/lib")
+            set(${package}_INCLUDE_DIRS
+                ${PARENT_DIR}/lib/${package}/include PARENT_SCOPE)
         else()
             message(STATUS 
                 "${PROJECT_NAME} could not find existing ${package} TARGET")
