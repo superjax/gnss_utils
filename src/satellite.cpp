@@ -8,6 +8,7 @@ using namespace Eigen;
 namespace gnss_utils
 {
 
+const double Satellite::MAXDTOE = 7200.0; // max time difference to Toe (s)
 const double Satellite::GM_EARTH = 3.986005e14;
 const double Satellite::OMEGA_EARTH = 7.2921151467e-5;
 const double Satellite::PI = 3.1415926535898;

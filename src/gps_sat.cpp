@@ -5,7 +5,6 @@ using namespace Eigen;
 namespace gnss_utils
 {
 
-const double GPSSat::MAXDTOE = 7200.0; // max time difference to GPS Toe (s)
 const double GPSSat::FREQL1 = 1.57542e9;
 const double GPSSat::LAMBDA_L1 = GPSSat::C_LIGHT / GPSSat::FREQL1;
 

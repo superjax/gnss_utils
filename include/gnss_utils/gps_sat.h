@@ -52,7 +52,6 @@ typedef struct {
 class GPSSat : public Satellite
 {
 public:
-    static const double MAXDTOE;
     static const double FREQL1;
     static const double LAMBDA_L1;
 

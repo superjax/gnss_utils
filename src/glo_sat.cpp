@@ -20,23 +20,13 @@ const double GloSat::RE_GLO = 6378136.0;
 static Eigen::VectorXd RK4(std::function<Eigen::VectorXd(const Eigen::VectorXd& x, const Eigen::VectorXd& u)> f,
                 double dt, const Eigen::VectorXd& x0, const Eigen::VectorXd& u)
 {
-  dbg(dt);
-  vec(u,3);
-  vec(x0,6);
   VectorXd k1 = f(x0, u);
-  vec(k1,6);
   VectorXd w = x0+k1*dt/2.0;
-  vec(w,6);
   VectorXd k2 = f(w, u);
-  vec(k2,6);
   w = x0+k2*dt/2.0;
-  vec(w,6);
   VectorXd k3 = f(w, u);
-  vec(k3,6);
   w = x0+k3*dt;
-  vec(w,6);
   VectorXd k4 = f(w, u);
-  vec(k4, 6);
   return x0 + (k1 + 2.0*k2 + 2.0*k3 + k4) * (dt / 6.0);
 }
 
@@ -105,9 +95,7 @@ void GloSat::update(const GTime &time)
     if (std::abs(dt) < GloSat::TSTEP)
       timestep = dt;
     x = RK4(GloSat::orbit, timestep, x, Map<const Vector3d>(geph_.acc));
-    dbg(x[0]);
 
-    break;
     dt -= timestep;
   }
 

@@ -14,6 +14,7 @@ class Satellite
 {
 
 public:
+  static const double MAXDTOE;
   static const double GM_EARTH;
   static const double OMEGA_EARTH;
   static const double PI;
