@@ -1,25 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(gnss_utils)
 
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-function(find_deps package url)
-    find_package(${package} QUIET)
-    if (${package}_FOUND)
-        message(STATUS found ${package})
-    else()
-        message(STATUS "did not find ${package}, cloning into local lib/ folder")
-        # Clone and create the proper variables
-        file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
-        execute_process(COMMAND git clone ${url} ${CMAKE_CURRENT_LIST_DIR}/lib/${package})
-        add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/${package})
-        set(${package}_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/lib/${package}/include)
-    endif()
-endfunction()
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/findDeps.cmake)
 
 find_deps(geometry https://github.com/superjax/geometry)
 
